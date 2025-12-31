@@ -73,7 +73,7 @@ export default function CategoryPage() {
     }
 
     const colorClass = category.color || 'from-cyan-500 to-blue-500';
-    const bgGlow = category.bgGlow || 'rgba(6, 182, 212, 0.3)';
+    const bgGlow = 'rgba(6, 182, 212, 0.3)';
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -129,19 +129,7 @@ export default function CategoryPage() {
                         </motion.div>
 
                         {/* Category Badge */}
-                        {category.priceRange && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.1, duration: 0.5 }}
-                                className="mb-4"
-                            >
-                                <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${colorClass} text-white text-sm font-semibold`}>
-                                    <Sparkles size={14} />
-                                    {category.priceRange}
-                                </span>
-                            </motion.div>
-                        )}
+
 
                         {/* Title */}
                         <motion.h1
@@ -154,16 +142,7 @@ export default function CategoryPage() {
                         </motion.h1>
 
                         {/* Description */}
-                        {category.description && (
-                            <motion.p
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.3, duration: 0.5 }}
-                                className="text-lg md:text-xl text-white/80 max-w-2xl"
-                            >
-                                {category.description}
-                            </motion.p>
-                        )}
+
 
                         {/* Product Count */}
                         <motion.p
