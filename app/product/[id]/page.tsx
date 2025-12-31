@@ -7,6 +7,7 @@ import { Product } from '@/lib/types';
 import ProductImage from '@/components/product/ProductImage';
 import ProductDetails from '@/components/product/ProductDetails';
 import InquiryForm from '@/components/product/InquiryForm';
+import SimilarProducts from '@/components/product/SimilarProducts';
 
 interface ProductPageProps {
     params: Promise<{ id: string }>;
@@ -99,6 +100,14 @@ export default function ProductPage({ params }: ProductPageProps) {
                         />
                     </div>
                 </div>
+
+                {/* Similar Products Section */}
+                {product.categoryId && (
+                    <SimilarProducts
+                        categoryId={product.categoryId}
+                        currentProductId={product.id}
+                    />
+                )}
             </div>
         </div>
     );

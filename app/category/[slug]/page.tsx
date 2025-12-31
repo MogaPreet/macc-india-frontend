@@ -43,7 +43,6 @@ export default function CategoryPage() {
         }
         fetchData();
     }, [slug]);
-
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 pt-20">

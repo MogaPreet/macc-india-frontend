@@ -139,28 +139,32 @@ export default function ProductGrid() {
 
                                     {/* Content */}
                                     <div className="p-5">
-                                        {/* Brand */}
-                                        <p className="text-xs text-text-muted font-medium uppercase tracking-wide mb-1">
-                                            {product.brandName}
-                                        </p>
-
                                         {/* Title */}
                                         <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-1 group-hover:text-accent-cyan transition-colors">
                                             {product.name}
                                         </h3>
 
-                                        {/* Specs Badge */}
-                                        <div className="flex flex-wrap gap-2 mb-4">
-                                            {product.specs?.ram && (
-                                                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-100 text-text-secondary">
-                                                    {product.specs.ram}
-                                                </span>
+                                        {/* Specs - Processor on first row, RAM & Storage on second */}
+                                        <div className="space-y-2 mb-4">
+                                            {product.specs?.processor && (
+                                                <div>
+                                                    <span className="inline-block px-2 py-1 rounded-md text-xs bg-gray-100 text-text-secondary truncate max-w-full">
+                                                        {product.specs.processor}
+                                                    </span>
+                                                </div>
                                             )}
-                                            {product.specs?.storage && (
-                                                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-100 text-text-secondary">
-                                                    {product.specs.storage}
-                                                </span>
-                                            )}
+                                            <div className="flex gap-2">
+                                                {product.specs?.ram && (
+                                                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-100 text-text-secondary">
+                                                        {product.specs.ram}
+                                                    </span>
+                                                )}
+                                                {product.specs?.storage && (
+                                                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-100 text-text-secondary">
+                                                        {product.specs.storage}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
 
                                         {/* Price */}

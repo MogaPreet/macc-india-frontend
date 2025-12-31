@@ -78,7 +78,7 @@ export default function PromoBanner() {
                 {/* Products Grid - Horizontal scroll on mobile, grid on desktop */}
                 <div className="relative">
                     {/* Mobile: Horizontal Scroll */}
-                    <div className="flex md:hidden gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-4 px-4">
+                    <div className="flex md:hidden gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide pl-4 -mr-4 pr-4">
                         {products.map((product, index) => (
                             <ProductCard
                                 key={product.id}

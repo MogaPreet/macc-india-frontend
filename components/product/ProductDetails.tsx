@@ -39,17 +39,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     const displaySpecs = Object.entries(product.specs || {}).filter(([_, value]) => value);
 
     return (
-        <div className="space-y-8">
-            {/* Brand */}
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.4 }}
-            >
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-text-secondary uppercase tracking-wide">
-                    {product.brandName}
-                </span>
-            </motion.div>
+        <div className="space-y-5 md:space-y-6">
+
 
             {/* Title */}
             <motion.h1
@@ -67,7 +58,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25, duration: 0.4 }}
-                    className="text-text-secondary"
+                    className="text-text-secondary -mt-2"
                 >
                     {product.description}
                 </motion.p>
@@ -100,6 +91,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.4 }}
+                className="-mt-1"
             >
                 <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-accent-green/10 text-accent-green">
                     <span className="w-2 h-2 rounded-full bg-accent-green"></span>
@@ -157,8 +149,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                             <div
                                 key={i}
                                 className={`flex items-center gap-3 p-3 rounded-lg ${item.included
-                                        ? 'bg-accent-green/5 border border-accent-green/20'
-                                        : 'bg-gray-50 border border-gray-200'
+                                    ? 'bg-accent-green/5 border border-accent-green/20'
+                                    : 'bg-gray-50 border border-gray-200'
                                     }`}
                             >
                                 {item.included ? (
