@@ -38,6 +38,7 @@ const docToProduct = (doc: any): Product => {
         isFeatured: data.isFeatured || false,
         isActive: data.isActive !== false,
         images: data.images || [],
+        youtubeUrl: data.youtubeUrl,
         specs: data.specs || {},
         includedItems: data.includedItems,
         warranty: data.warranty,

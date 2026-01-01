@@ -88,7 +88,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
                     {/* Left Column - Sticky Image Gallery */}
-                    <ProductImage images={product.images || []} alt={product.name} />
+                    <ProductImage images={product.images || []} alt={product.name} youtubeUrl={product.youtubeUrl} />
 
                     {/* Right Column - Scrollable Details */}
                     <div className="space-y-8">

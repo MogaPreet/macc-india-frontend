@@ -1,25 +1,60 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, Play, X } from 'lucide-react';
 
 interface ProductImageProps {
     images: string[];
     alt: string;
+    youtubeUrl?: string;
 }
 
-export default function ProductImage({ images, alt }: ProductImageProps) {
+// Extract YouTube video ID from various URL formats
+function getYoutubeVideoId(url: string): string | null {
+    const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    ];
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            return match[1];
+        }
+    }
+    return null;
+}
+
+export default function ProductImage({ images, alt, youtubeUrl }: ProductImageProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [isZoomed, setIsZoomed] = useState(false);
+    const [isVideoOpen, setIsVideoOpen] = useState(false);
+
+    // Lock body scroll when modal is open
+    useEffect(() => {
+        if (isZoomed || isVideoOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isZoomed, isVideoOpen]);
+
+    const videoId = youtubeUrl ? getYoutubeVideoId(youtubeUrl) : null;
+    const hasVideo = !!videoId;
+
+    // Total items = images + 1 if there's a video
+    const totalItems = images.length + (hasVideo ? 1 : 0);
+    const isVideoSelected = hasVideo && selectedIndex === images.length;
 
     const handlePrevious = () => {
-        setSelectedIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+        setSelectedIndex((prev) => (prev === 0 ? totalItems - 1 : prev - 1));
     };
 
     const handleNext = () => {
-        setSelectedIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+        setSelectedIndex((prev) => (prev === totalItems - 1 ? 0 : prev + 1));
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -39,7 +74,7 @@ export default function ProductImage({ images, alt }: ProductImageProps) {
             {/* Main Image Container */}
             <div className="neo-card overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8 relative group">
                 {/* Navigation Arrows */}
-                {images.length > 1 && (
+                {totalItems > 1 && (
                     <>
                         <button
                             onClick={handlePrevious}
@@ -58,48 +93,79 @@ export default function ProductImage({ images, alt }: ProductImageProps) {
                     </>
                 )}
 
-                {/* Zoom Button */}
-                <button
-                    onClick={() => setIsZoomed(true)}
-                    className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110"
-                    aria-label="Zoom image"
-                >
-                    <ZoomIn size={20} className="text-gray-700" />
-                </button>
-
-                {/* Main Image */}
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={selectedIndex}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
-                        whileHover={{ scale: 1.02 }}
-                        className="cursor-pointer"
+                {/* Zoom Button (only for images) */}
+                {!isVideoSelected && (
+                    <button
                         onClick={() => setIsZoomed(true)}
+                        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110"
+                        aria-label="Zoom image"
                     >
-                        <Image
-                            src={images[selectedIndex]}
-                            alt={`${alt} - Image ${selectedIndex + 1}`}
-                            width={600}
-                            height={400}
-                            className="w-full h-auto object-cover rounded-lg drop-shadow-xl"
-                            priority
-                        />
-                    </motion.div>
+                        <ZoomIn size={20} className="text-gray-700" />
+                    </button>
+                )}
+
+                {/* Main Image or Video Thumbnail */}
+                <AnimatePresence mode="wait">
+                    {isVideoSelected ? (
+                        <motion.div
+                            key="video-thumbnail"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="cursor-pointer relative"
+                            onClick={() => setIsVideoOpen(true)}
+                        >
+                            <Image
+                                src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+                                alt={`${alt} - Video`}
+                                width={600}
+                                height={400}
+                                className="w-full h-auto object-cover rounded-lg drop-shadow-xl"
+                            />
+                            {/* Play Button Overlay */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <motion.div
+                                    whileHover={{ scale: 1.1 }}
+                                    className="w-20 h-20 rounded-full bg-red-600 flex items-center justify-center shadow-2xl"
+                                >
+                                    <Play size={36} className="text-white ml-1" fill="white" />
+                                </motion.div>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key={selectedIndex}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
+                            whileHover={{ scale: 1.02 }}
+                            className="cursor-pointer"
+                            onClick={() => setIsZoomed(true)}
+                        >
+                            <Image
+                                src={images[selectedIndex]}
+                                alt={`${alt} - Image ${selectedIndex + 1}`}
+                                width={600}
+                                height={400}
+                                className="w-full h-auto object-cover rounded-lg drop-shadow-xl"
+                                priority
+                            />
+                        </motion.div>
+                    )}
                 </AnimatePresence>
 
                 {/* Image Counter */}
-                {images.length > 1 && (
+                {totalItems > 1 && (
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-sm text-white text-sm font-medium">
-                        {selectedIndex + 1} / {images.length}
+                        {selectedIndex + 1} / {totalItems}
                     </div>
                 )}
             </div>
 
             {/* Thumbnail Strip */}
-            {images.length > 1 && (
+            {totalItems > 1 && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -113,8 +179,8 @@ export default function ProductImage({ images, alt }: ProductImageProps) {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             className={`relative flex-shrink-0 rounded-xl overflow-hidden transition-all duration-300 ${selectedIndex === index
-                                    ? 'ring-2 ring-accent-cyan ring-offset-2 ring-offset-background'
-                                    : 'opacity-60 hover:opacity-100'
+                                ? 'ring-2 ring-accent-cyan ring-offset-2 ring-offset-background'
+                                : 'opacity-60 hover:opacity-100'
                                 }`}
                         >
                             <Image
@@ -133,10 +199,42 @@ export default function ProductImage({ images, alt }: ProductImageProps) {
                             )}
                         </motion.button>
                     ))}
+
+                    {/* YouTube Video Thumbnail */}
+                    {hasVideo && (
+                        <motion.button
+                            onClick={() => setSelectedIndex(images.length)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className={`relative flex-shrink-0 rounded-xl overflow-hidden transition-all duration-300 ${isVideoSelected
+                                ? 'ring-2 ring-red-500 ring-offset-2 ring-offset-background'
+                                : 'opacity-60 hover:opacity-100'
+                                }`}
+                        >
+                            <Image
+                                src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
+                                alt={`${alt} video thumbnail`}
+                                width={80}
+                                height={60}
+                                className="w-20 h-16 object-cover"
+                            />
+                            {/* Play icon overlay */}
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                                <Play size={20} className="text-white" fill="white" />
+                            </div>
+                            {isVideoSelected && (
+                                <motion.div
+                                    layoutId="thumbnail-indicator"
+                                    className="absolute inset-0 border-2 border-red-500 rounded-xl"
+                                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                />
+                            )}
+                        </motion.button>
+                    )}
                 </motion.div>
             )}
 
-            {/* Fullscreen Lightbox */}
+            {/* Fullscreen Image Lightbox */}
             <AnimatePresence>
                 {isZoomed && (
                     <motion.div
@@ -204,6 +302,50 @@ export default function ProductImage({ images, alt }: ProductImageProps) {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* YouTube Video Modal */}
+            <AnimatePresence>
+                {isVideoOpen && hasVideo && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 md:p-8"
+                    >
+                        {/* Close Button - positioned absolutely to the viewport */}
+                        <button
+                            onClick={() => setIsVideoOpen(false)}
+                            className="fixed top-4 right-4 md:top-6 md:right-6 z-[100] w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center transition-all duration-300 hover:bg-white/40 hover:scale-110"
+                            aria-label="Close video"
+                        >
+                            <X size={24} className="text-white" />
+                        </button>
+
+                        {/* Video Container */}
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="w-full max-w-5xl aspect-video relative"
+                        >
+                            <iframe
+                                src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="w-full h-full rounded-xl"
+                            />
+                        </motion.div>
+
+                        {/* Click outside to close */}
+                        <div
+                            className="absolute inset-0 -z-10"
+                            onClick={() => setIsVideoOpen(false)}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }
+

@@ -41,6 +41,7 @@ export interface Product {
     isFeatured: boolean;
     isActive: boolean;
     images: string[];
+    youtubeUrl?: string;
     specs: ProductSpecs;
     includedItems?: IncludedItem[];
     warranty?: Warranty;
