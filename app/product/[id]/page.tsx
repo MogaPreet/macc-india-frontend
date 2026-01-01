@@ -97,6 +97,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                             productId={product.id}
                             productName={product.name}
                             productSlug={product.slug}
+                            productSpecs={product.specs}
                         />
                     </div>
                 </div>

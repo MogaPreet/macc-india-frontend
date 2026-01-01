@@ -99,7 +99,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 </span>
             </motion.div>
 
-            {/* Specs Grid */}
+            {/* Specs Grid - Fixed Order */}
             {displaySpecs.length > 0 && (
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -107,7 +107,11 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                     transition={{ delay: 0.5, duration: 0.4 }}
                     className="grid grid-cols-2 gap-4"
                 >
-                    {displaySpecs.map(([key, value], index) => {
+                    {/* Fixed order: processor, screen, ram, storage, graphics, os, ports, battery */}
+                    {['processor', 'screen', 'ram', 'storage', 'graphics', 'os', 'ports', 'battery'].map((key, index) => {
+                        const value = product.specs?.[key as keyof typeof product.specs];
+                        if (!value) return null;
+
                         const Icon = specIcons[key] || Laptop;
                         const label = specLabels[key] || key.charAt(0).toUpperCase() + key.slice(1);
 
@@ -125,7 +129,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                                     </div>
                                     <span className="text-sm font-medium text-text-muted">{label}</span>
                                 </div>
-                                <p className="text-foreground font-semibold">{value}</p>
+                                <p className="text-foreground font-semibold break-words">{value}</p>
                             </motion.div>
                         );
                     })}
@@ -144,38 +148,21 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                     What&apos;s in the Box
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {product.includedItems && product.includedItems.length > 0 ? (
-                        product.includedItems.map((item, i) => (
-                            <div
-                                key={i}
-                                className={`flex items-center gap-3 p-3 rounded-lg ${item.included
-                                    ? 'bg-accent-green/5 border border-accent-green/20'
-                                    : 'bg-gray-50 border border-gray-200'
-                                    }`}
-                            >
-                                {item.included ? (
-                                    <Check size={18} className="text-accent-green flex-shrink-0" />
-                                ) : (
-                                    <X size={18} className="text-gray-400 flex-shrink-0" />
-                                )}
-                                <span className={item.included ? 'text-foreground' : 'text-text-muted line-through'}>
-                                    {item.icon && <span className="mr-2">{item.icon}</span>}
-                                    {item.name}
-                                </span>
-                            </div>
-                        ))
-                    ) : (
-                        // Default items if none specified
-                        ['6-Month Macc-India Warranty', 'Original Charger Included', 'Professionally Cleaned & Tested', 'Free Express Delivery'].map((feature, i) => (
-                            <div
-                                key={i}
-                                className="flex items-center gap-3 p-3 rounded-lg bg-accent-green/5 border border-accent-green/20"
-                            >
-                                <Check size={18} className="text-accent-green flex-shrink-0" />
-                                <span className="text-foreground">{feature}</span>
-                            </div>
-                        ))
-                    )}
+                    {[
+                        { name: 'Adaptor', icon: '🔌' },
+                        { name: 'Laptop Box', icon: '📦' }
+                    ].map((item, i) => (
+                        <div
+                            key={i}
+                            className="flex items-center gap-3 p-3 rounded-lg bg-accent-green/5 border border-accent-green/20"
+                        >
+                            <Check size={18} className="text-accent-green flex-shrink-0" />
+                            <span className="text-foreground">
+                                <span className="mr-2">{item.icon}</span>
+                                {item.name}
+                            </span>
+                        </div>
+                    ))}
                 </div>
             </motion.div>
 

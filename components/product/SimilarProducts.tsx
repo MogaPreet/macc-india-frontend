@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getProductsByCategory } from '@/lib/firebase-services';
+import { getProducts } from '@/lib/firebase-services';
 import { Product } from '@/lib/types';
 
 interface SimilarProductsProps {
@@ -17,27 +17,21 @@ export default function SimilarProducts({ categoryId, currentProductId }: Simila
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function fetchSimilarProducts() {
+        async function fetchAllProducts() {
             try {
-                const categoryProducts = await getProductsByCategory(categoryId);
-                // Filter out current product and limit to 4
-                const similar = categoryProducts
-                    .filter(p => p.id !== currentProductId)
-                    .slice(0, 4);
-                setProducts(similar);
+                const allProducts = await getProducts();
+                // Filter out current product only (show all others)
+                const otherProducts = allProducts.filter(p => p.id !== currentProductId);
+                setProducts(otherProducts);
             } catch (error) {
-                console.error('Error fetching similar products:', error);
+                console.error('Error fetching products:', error);
             } finally {
                 setLoading(false);
             }
         }
 
-        if (categoryId) {
-            fetchSimilarProducts();
-        } else {
-            setLoading(false);
-        }
-    }, [categoryId, currentProductId]);
+        fetchAllProducts();
+    }, [currentProductId]);
 
     if (loading) {
         return (
