@@ -310,7 +310,7 @@ export const testimonials = [
     {
         id: 1,
         name: 'Rahul Sharma',
-        location: 'Mumbai',
+        location: 'Ahemdabad',
         rating: 5,
         text: 'Got my MacBook Pro at half the price. Looks and works brand new. Amazing service!',
         avatar: 'RS'

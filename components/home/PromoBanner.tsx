@@ -142,7 +142,7 @@ function ProductCard({ product, index, className = '' }: ProductCardProps) {
             className={className}
         >
             <Link href={`/product/${product.slug}`}>
-                <div className="group relative bg-white/10 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/20 hover:border-amber-400/50 transition-all duration-300">
+                <div className="group relative bg-white/10 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/20 hover:border-amber-400/50 transition-all duration-300 h-full">
                     {/* Discount Badge */}
                     {discount > 0 && (
                         <div className="absolute top-3 left-3 z-20 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-xs shadow-lg">
@@ -156,7 +156,7 @@ function ProductCard({ product, index, className = '' }: ProductCardProps) {
                             src={product.images[0] || 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=600&q=80'}
                             alt={product.name}
                             fill
-                            className="object-cover group-hover:scale-110 transition-transform duration-500"
+                            className="object-cover transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     </div>

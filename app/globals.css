@@ -162,6 +162,37 @@ body {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+/* Auto-scroll text animation for long text */
+@keyframes text-scroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.text-scroll-container {
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.text-scroll-content {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.text-scroll-container:hover .text-scroll-content {
+  animation: text-scroll 5s linear infinite;
+}
+
+.text-scroll-container:hover .text-scroll-content::after {
+  content: attr(data-text);
+  padding-left: 2rem;
+}
+
 /* Neon Grid Background */
 .neon-grid {
   background-image:

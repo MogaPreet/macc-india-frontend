@@ -148,7 +148,7 @@ export default function ProductGrid() {
                                         <div className="space-y-2 mb-4">
                                             {product.specs?.processor && (
                                                 <div>
-                                                    <span className="inline-block px-2 py-1 rounded-md text-xs bg-gray-100 text-text-secondary truncate max-w-full">
+                                                    <span className="inline-block px-2 py-1 rounded-md text-xs bg-gray-100 text-text-secondary">
                                                         {product.specs.processor}
                                                     </span>
                                                 </div>

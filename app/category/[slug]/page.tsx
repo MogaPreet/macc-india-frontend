@@ -215,9 +215,11 @@ export default function CategoryPage() {
                                             {/* Specs */}
                                             <div className="grid grid-cols-2 gap-2 mb-4">
                                                 {product.specs?.processor && (
-                                                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                                        <Cpu size={12} />
-                                                        <span className="truncate">{product.specs.processor.split(' ').slice(0, 2).join(' ')}</span>
+                                                    <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
+                                                        <Cpu size={12} className="flex-shrink-0" />
+                                                        <div className="text-scroll-container">
+                                                            <span className="text-scroll-content" data-text={product.specs.processor}>{product.specs.processor}</span>
+                                                        </div>
                                                     </div>
                                                 )}
                                                 {product.specs?.ram && (
@@ -233,9 +235,11 @@ export default function CategoryPage() {
                                                     </div>
                                                 )}
                                                 {product.specs?.screen && (
-                                                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                                        <Monitor size={12} />
-                                                        <span className="truncate">{product.specs.screen.split(' ')[0]}</span>
+                                                    <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
+                                                        <Monitor size={12} className="flex-shrink-0" />
+                                                        <div className="text-scroll-container">
+                                                            <span className="text-scroll-content" data-text={product.specs.screen}>{product.specs.screen}</span>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>

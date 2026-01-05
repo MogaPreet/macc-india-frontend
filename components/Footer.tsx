@@ -112,7 +112,7 @@ export default function Footer() {
                             <span>in</span>
                             <span className="flex items-center gap-1">
                                 <MapPin size={14} />
-                                Mumbai
+                                Ahemdabad
                             </span>
                         </div>
                     </div>

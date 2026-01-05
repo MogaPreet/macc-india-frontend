@@ -139,8 +139,8 @@ function ProductCard({ product, index, className = '' }: ProductCardProps) {
                         {product.specs && (
                             <div className="space-y-1 mb-2">
                                 {product.specs.processor && (
-                                    <div>
-                                        <span className="inline-block text-xs px-2 py-0.5 rounded bg-gray-100 text-text-muted truncate max-w-full">
+                                    <div className="text-scroll-container text-xs px-2 py-0.5 rounded bg-gray-100 text-text-muted">
+                                        <span className="text-scroll-content" data-text={product.specs.processor}>
                                             {product.specs.processor}
                                         </span>
                                     </div>

@@ -133,7 +133,7 @@ export default function OffersSection() {
                                             src={deal.image}
                                             alt={deal.title}
                                             fill
-                                            className="object-cover group-hover:scale-110 transition-transform duration-700"
+                                            className="object-cover transition-transform duration-700"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div>
                                     </div>

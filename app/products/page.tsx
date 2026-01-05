@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { getProducts, getBrands } from '@/lib/firebase-services';
 import { Product, Brand } from '@/lib/types';
 
-const conditions = ['Like New', 'Excellent', 'Good', 'Fair'];
+
 const priceRanges = [
     { label: 'Under ₹50K', min: 0, max: 50000 },
     { label: '₹50K - ₹80K', min: 50000, max: 80000 },
@@ -24,10 +24,30 @@ export default function ProductsPage() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-    const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
+    const [selectedRAM, setSelectedRAM] = useState<string[]>([]);
+    const [selectedProcessors, setSelectedProcessors] = useState<string[]>([]);
     const [selectedPriceRange, setSelectedPriceRange] = useState<{ min: number; max: number } | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+    // Extract unique RAM and Processor options from products
+    const ramOptions = useMemo(() => {
+        const rams = products.map(p => p.specs?.ram).filter(Boolean) as string[];
+        return [...new Set(rams)].sort();
+    }, [products]);
+
+    const processorOptions = useMemo(() => {
+        const processors = products.map(p => p.specs?.processor).filter(Boolean) as string[];
+        // Extract processor family (e.g., "Intel Core i5", "AMD Ryzen 5")
+        const processorFamilies = processors.map(p => {
+            const parts = p.split(' ');
+            if (parts[0] === 'Intel' || parts[0] === 'AMD' || parts[0] === 'Apple') {
+                return parts.slice(0, 3).join(' ');
+            }
+            return parts.slice(0, 2).join(' ');
+        });
+        return [...new Set(processorFamilies)].sort();
+    }, [products]);
 
     // Fetch products and brands from Firebase
     useEffect(() => {
@@ -57,13 +77,19 @@ export default function ProductsPage() {
                 (product.specs?.processor?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
 
             const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(product.brandName);
-            const matchesCondition = selectedConditions.length === 0 || selectedConditions.includes(product.condition);
+
+            const matchesRAM = selectedRAM.length === 0 ||
+                (product.specs?.ram && selectedRAM.includes(product.specs.ram));
+
+            const matchesProcessor = selectedProcessors.length === 0 ||
+                (product.specs?.processor && selectedProcessors.some(sp => product.specs?.processor?.includes(sp)));
+
             const matchesPrice = !selectedPriceRange ||
                 (product.price >= selectedPriceRange.min && product.price < selectedPriceRange.max);
 
-            return matchesSearch && matchesBrand && matchesCondition && matchesPrice;
+            return matchesSearch && matchesBrand && matchesRAM && matchesProcessor && matchesPrice;
         });
-    }, [products, searchQuery, selectedBrands, selectedConditions, selectedPriceRange]);
+    }, [products, searchQuery, selectedBrands, selectedRAM, selectedProcessors, selectedPriceRange]);
 
     // Pagination
     const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
@@ -83,9 +109,16 @@ export default function ProductsPage() {
         handleFilterChange();
     };
 
-    const toggleCondition = (condition: string) => {
-        setSelectedConditions(prev =>
-            prev.includes(condition) ? prev.filter(c => c !== condition) : [...prev, condition]
+    const toggleRAM = (ram: string) => {
+        setSelectedRAM(prev =>
+            prev.includes(ram) ? prev.filter(r => r !== ram) : [...prev, ram]
+        );
+        handleFilterChange();
+    };
+
+    const toggleProcessor = (processor: string) => {
+        setSelectedProcessors(prev =>
+            prev.includes(processor) ? prev.filter(p => p !== processor) : [...prev, processor]
         );
         handleFilterChange();
     };
@@ -93,12 +126,13 @@ export default function ProductsPage() {
     const clearAllFilters = () => {
         setSearchQuery('');
         setSelectedBrands([]);
-        setSelectedConditions([]);
+        setSelectedRAM([]);
+        setSelectedProcessors([]);
         setSelectedPriceRange(null);
         setCurrentPage(1);
     };
 
-    const hasActiveFilters = searchQuery || selectedBrands.length > 0 || selectedConditions.length > 0 || selectedPriceRange;
+    const hasActiveFilters = searchQuery || selectedBrands.length > 0 || selectedRAM.length > 0 || selectedProcessors.length > 0 || selectedPriceRange;
 
     const FilterSidebar = () => (
         <div className="space-y-6">
@@ -131,19 +165,37 @@ export default function ProductsPage() {
                 </div>
             </div>
 
-            {/* Condition Filter */}
+            {/* RAM Filter */}
             <div>
-                <h3 className="text-gray-900 font-semibold mb-3">Condition</h3>
+                <h3 className="text-gray-900 font-semibold mb-3">RAM</h3>
                 <div className="space-y-2">
-                    {conditions.map(condition => (
-                        <label key={condition} className="flex items-center gap-3 cursor-pointer group">
+                    {ramOptions.map(ram => (
+                        <label key={ram} className="flex items-center gap-3 cursor-pointer group">
                             <input
                                 type="checkbox"
-                                checked={selectedConditions.includes(condition)}
-                                onChange={() => toggleCondition(condition)}
+                                checked={selectedRAM.includes(ram)}
+                                onChange={() => toggleRAM(ram)}
                                 className="w-4 h-4 rounded border-gray-300 bg-white text-cyan-600 focus:ring-cyan-500 focus:ring-offset-0"
                             />
-                            <span className="text-gray-600 group-hover:text-gray-900 transition-colors">{condition}</span>
+                            <span className="text-gray-600 group-hover:text-gray-900 transition-colors">{ram}</span>
+                        </label>
+                    ))}
+                </div>
+            </div>
+
+            {/* Processor Filter */}
+            <div>
+                <h3 className="text-gray-900 font-semibold mb-3">Processor</h3>
+                <div className="space-y-2">
+                    {processorOptions.map(processor => (
+                        <label key={processor} className="flex items-center gap-3 cursor-pointer group">
+                            <input
+                                type="checkbox"
+                                checked={selectedProcessors.includes(processor)}
+                                onChange={() => toggleProcessor(processor)}
+                                className="w-4 h-4 rounded border-gray-300 bg-white text-cyan-600 focus:ring-cyan-500 focus:ring-offset-0"
+                            />
+                            <span className="text-gray-600 group-hover:text-gray-900 transition-colors">{processor}</span>
                         </label>
                     ))}
                 </div>
@@ -375,9 +427,11 @@ export default function ProductsPage() {
                                                         {/* Specs */}
                                                         <div className="grid grid-cols-2 gap-2 mb-4">
                                                             {product.specs?.processor && (
-                                                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                                                    <Cpu size={12} />
-                                                                    <span className="truncate">{product.specs.processor.split(' ').slice(0, 2).join(' ')}</span>
+                                                                <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
+                                                                    <Cpu size={12} className="flex-shrink-0" />
+                                                                    <div className="text-scroll-container">
+                                                                        <span className="text-scroll-content" data-text={product.specs.processor}>{product.specs.processor}</span>
+                                                                    </div>
                                                                 </div>
                                                             )}
                                                             {product.specs?.ram && (
@@ -393,9 +447,11 @@ export default function ProductsPage() {
                                                                 </div>
                                                             )}
                                                             {product.specs?.screen && (
-                                                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                                                    <Monitor size={12} />
-                                                                    <span className="truncate">{product.specs.screen.split(' ')[0]}</span>
+                                                                <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
+                                                                    <Monitor size={12} className="flex-shrink-0" />
+                                                                    <div className="text-scroll-container">
+                                                                        <span className="text-scroll-content" data-text={product.specs.screen}>{product.specs.screen}</span>
+                                                                    </div>
                                                                 </div>
                                                             )}
                                                         </div>
