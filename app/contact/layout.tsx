@@ -10,12 +10,12 @@ export const metadata: Metadata = {
         "buy used laptop near me",
     ],
     alternates: {
-        canonical: "https://maccindia.in/contact",
+        canonical: "https://www.maccindia.in/contact",
     },
     openGraph: {
         title: "Contact Macc-India | Refurbished Laptops Ahmedabad",
         description: "Visit our showroom or get in touch for premium refurbished laptops with warranty.",
-        url: "https://maccindia.in/contact",
+        url: "https://www.maccindia.in/contact",
     },
 };
 

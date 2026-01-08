@@ -13,12 +13,12 @@ export const metadata: Metadata = {
         "cheap laptops India",
     ],
     alternates: {
-        canonical: "https://maccindia.in/products",
+        canonical: "https://www.maccindia.in/products",
     },
     openGraph: {
         title: "Shop Refurbished Laptops | Macc-India",
         description: "Browse certified pre-owned laptops from top brands. MacBooks, Dell, HP & more with warranty.",
-        url: "https://maccindia.in/products",
+        url: "https://www.maccindia.in/products",
     },
 };
 

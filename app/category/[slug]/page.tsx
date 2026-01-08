@@ -32,12 +32,12 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
             'refurbished laptops',
         ],
         alternates: {
-            canonical: `https://maccindia.in/category/${category.slug}`,
+            canonical: `https://www.maccindia.in/category/${category.slug}`,
         },
         openGraph: {
             title,
             description,
-            url: `https://maccindia.in/category/${category.slug}`,
+            url: `https://www.maccindia.in/category/${category.slug}`,
             type: 'website',
             images: category.image ? [
                 {
@@ -91,7 +91,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             item: {
                 '@type': 'Product',
                 name: product.name,
-                url: `https://maccindia.in/product/${product.slug}`,
+                url: `https://www.maccindia.in/product/${product.slug}`,
                 image: product.images?.[0],
                 offers: {
                     '@type': 'Offer',

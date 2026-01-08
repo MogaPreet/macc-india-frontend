@@ -10,12 +10,12 @@ export const metadata: Metadata = {
         "Macc-India help",
     ],
     alternates: {
-        canonical: "https://maccindia.in/faq",
+        canonical: "https://www.maccindia.in/faq",
     },
     openGraph: {
         title: "FAQ | Macc-India Refurbished Laptops",
         description: "Get answers to your questions about our refurbished laptops, warranty, shipping, and more.",
-        url: "https://maccindia.in/faq",
+        url: "https://www.maccindia.in/faq",
     },
 };
 

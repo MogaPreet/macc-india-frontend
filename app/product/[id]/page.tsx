@@ -33,12 +33,12 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
             'certified pre-owned laptop',
         ].filter(Boolean),
         alternates: {
-            canonical: `https://maccindia.in/product/${product.slug}`,
+            canonical: `https://www.maccindia.in/product/${product.slug}`,
         },
         openGraph: {
             title,
             description,
-            url: `https://maccindia.in/product/${product.slug}`,
+            url: `https://www.maccindia.in/product/${product.slug}`,
             type: 'website',
             images: product.images?.[0] ? [
                 {
@@ -92,7 +92,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         },
         offers: {
             '@type': 'Offer',
-            url: `https://maccindia.in/product/${product.slug}`,
+            url: `https://www.maccindia.in/product/${product.slug}`,
             priceCurrency: 'INR',
             price: product.price,
             availability: 'https://schema.org/InStock',

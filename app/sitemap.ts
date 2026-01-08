@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { getProducts, getCategories } from '@/lib/firebase-services';
 
-const BASE_URL = 'https://maccindia.in';
+const BASE_URL = 'https://www.maccindia.in';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Static pages

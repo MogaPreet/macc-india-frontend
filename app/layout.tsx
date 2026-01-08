@@ -17,7 +17,7 @@ const notoSans = Noto_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://maccindia.in"),
+  metadataBase: new URL("https://www.maccindia.in"),
   title: {
     default: "Macc-India | Premium Refurbished Laptops in India",
     template: "%s | Macc-India",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     "second hand laptop with warranty",
     "sustainable tech India",
   ],
-  authors: [{ name: "Macc-India", url: "https://maccindia.in" }],
+  authors: [{ name: "Macc-India", url: "https://www.maccindia.in" }],
   creator: "Macc-India",
   publisher: "Macc-India",
   formatDetection: {
@@ -44,12 +44,12 @@ export const metadata: Metadata = {
     telephone: false,
   },
   alternates: {
-    canonical: "https://maccindia.in",
+    canonical: "https://www.maccindia.in",
   },
   openGraph: {
     title: "Macc-India | Premium Refurbished Laptops in India",
     description: "Buy certified refurbished laptops at sustainable prices. MacBooks, Dell, HP & more with warranty. Shop premium pre-owned laptops now!",
-    url: "https://maccindia.in",
+    url: "https://www.maccindia.in",
     siteName: "Macc-India",
     locale: "en_IN",
     type: "website",
@@ -86,8 +86,8 @@ const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "Macc-India",
-  url: "https://maccindia.in",
-  logo: "https://maccindia.in/favicon1.png",
+  url: "https://www.maccindia.in",
+  logo: "https://www.maccindia.in/favicon1.png",
   description: "Premium refurbished laptops dealer in India. Certified pre-owned MacBooks, Dell, HP, Lenovo with warranty.",
   address: {
     "@type": "PostalAddress",
