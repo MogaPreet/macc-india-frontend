@@ -38,8 +38,12 @@ export default function Navbar() {
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 group">
                         <div className="relative">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <span className="text-white font-bold text-lg">M</span>
+                            <div className="w-11 h-11 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
+                                <img
+                                    src="/favicon1.png"
+                                    alt="Macc-India Logo"
+                                    className="object-cover w-full h-full scale-125"
+                                />
                             </div>
                             <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-900 animate-pulse"></div>
                         </div>
