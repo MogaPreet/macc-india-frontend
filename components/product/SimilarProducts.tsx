@@ -8,11 +8,11 @@ import { getProducts } from '@/lib/firebase-services';
 import { Product } from '@/lib/types';
 
 interface SimilarProductsProps {
-    categoryId: string;
+    categoryIds: string[];  // Changed from categoryId: string - now supports multiple categories
     currentProductId: string;
 }
 
-export default function SimilarProducts({ categoryId, currentProductId }: SimilarProductsProps) {
+export default function SimilarProducts({ categoryIds, currentProductId }: SimilarProductsProps) {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
 

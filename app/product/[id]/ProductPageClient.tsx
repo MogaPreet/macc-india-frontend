@@ -31,9 +31,9 @@ export default function ProductPageClient({ product }: ProductPageClientProps) {
                 </div>
 
                 {/* Similar Products Section */}
-                {product.categoryId && (
+                {product.categoryIds && product.categoryIds.length > 0 && (
                     <SimilarProducts
-                        categoryId={product.categoryId}
+                        categoryIds={product.categoryIds}
                         currentProductId={product.id}
                     />
                 )}

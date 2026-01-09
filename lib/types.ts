@@ -32,8 +32,8 @@ export interface Product {
     description?: string;
     brandId: string;
     brandName: string;
-    categoryId: string;
-    categoryName: string;
+    categoryIds: string[];      // Changed from categoryId: string - now supports multiple categories
+    categoryNames: string[];    // Changed from categoryName: string - now supports multiple categories
     price: number;
     originalPrice?: number;
     condition: 'Like New' | 'Excellent' | 'Good' | 'Fair';

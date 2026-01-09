@@ -22,6 +22,17 @@ const convertTimestamp = (timestamp: Timestamp | undefined): Date => {
 // Helper to convert Firestore document to Product type
 const docToProduct = (doc: any): Product => {
     const data = doc.data();
+
+    // Handle backward compatibility for category fields
+    // New format: categoryIds/categoryNames (arrays)
+    // Old format: categoryId/categoryName (single values)
+    const categoryIds = data.categoryIds
+        ? data.categoryIds
+        : (data.categoryId ? [data.categoryId] : []);
+    const categoryNames = data.categoryNames
+        ? data.categoryNames
+        : (data.categoryName ? [data.categoryName] : []);
+
     return {
         id: doc.id,
         name: data.name || '',
@@ -29,8 +40,8 @@ const docToProduct = (doc: any): Product => {
         description: data.description,
         brandId: data.brandId || '',
         brandName: data.brandName || '',
-        categoryId: data.categoryId || '',
-        categoryName: data.categoryName || '',
+        categoryIds,
+        categoryNames,
         price: data.price || 0,
         originalPrice: data.originalPrice,
         condition: data.condition || 'Good',
@@ -123,15 +134,11 @@ export async function getProductById(id: string): Promise<Product | null> {
 
 export async function getProductsByCategory(categoryId: string): Promise<Product[]> {
     try {
-        const productsRef = collection(db, 'products');
-        const q = query(
-            productsRef,
-            where('categoryId', '==', categoryId),
-            where('isActive', '==', true),
-            orderBy('createdAt', 'desc')
-        );
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(docToProduct);
+        // Fetch all active products and filter client-side to support both:
+        // - Old format: products with categoryId field (single category)
+        // - New format: products with categoryIds array (multiple categories)
+        const allProducts = await getProducts();
+        return allProducts.filter(product => product.categoryIds.includes(categoryId));
     } catch (error) {
         console.error('Error fetching products by category:', error);
         return [];
