@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Phone, Sparkles } from 'lucide-react';
 
 const navLinks = [
-    { name: 'All Products', href: '/products' },
+    { name: 'Laptops', href: '/products' },
     { name: 'Categories', href: '/#categories' },
     { name: 'Deals', href: '/#deals' },
 ];
@@ -14,24 +15,36 @@ const navLinks = [
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const pathname = usePathname();
+    const isHomePage = pathname === '/';
 
     useEffect(() => {
         const handleScroll = () => {
-            setScrolled(window.scrollY > 50);
+            setScrolled(window.scrollY > 20);
         };
+        handleScroll(); // Check initial scroll position
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    // Initial background class depends on whether we are on the homepage or not
+    const getNavbarBg = () => {
+        if (scrolled) {
+            return 'bg-gray-900/95 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/20';
+        }
+        if (isHomePage) {
+            return 'bg-transparent';
+        }
+        // Non-home pages get a lighter shade of the scrolled background initially
+        return 'bg-gray-900/95 backdrop-blur-md border-b border-white/5';
+    };
 
     return (
         <motion.nav
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
-                ? 'bg-gray-900/95 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/20'
-                : 'bg-transparent'
-                }`}
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${getNavbarBg()}`}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16 md:h-20">
@@ -48,10 +61,43 @@ export default function Navbar() {
                             <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-900 animate-pulse"></div>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-lg md:text-xl font-bold text-white leading-tight">
-                                Macc-<span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">India</span>
-                            </span>
-                            <span className="text-[10px] text-gray-500 uppercase tracking-wider hidden sm:block">Premium Refurbished</span>
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-lg md:text-xl font-bold text-white leading-tight">
+                                    Macc-<span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">India</span>
+                                </span>
+                                <motion.svg
+                                    className="w-5 h-3.5 rounded-sm shadow-sm origin-left"
+                                    viewBox="0 0 900 600"
+                                    animate={{
+                                        skewY: [0, 3, 0, -3, 0],
+                                        scaleY: [1, 1.02, 1, 1.02, 1],
+                                    }}
+                                    transition={{
+                                        duration: 3,
+                                        repeat: Infinity,
+                                        ease: "easeInOut"
+                                    }}
+                                >
+                                    <rect width="900" height="200" fill="#FF9933" />
+                                    <rect y="200" width="900" height="200" fill="#FFFFFF" />
+                                    <rect y="400" width="900" height="200" fill="#128807" />
+                                    <circle cx="450" cy="300" r="80" fill="none" stroke="#000080" strokeWidth="10" />
+                                    <circle cx="450" cy="300" r="15" fill="#000080" />
+                                    <g id="spokes">
+                                        {[...Array(24)].map((_, i) => (
+                                            <line
+                                                key={i}
+                                                x1="450" y1="300"
+                                                x2={450 + 80 * Math.cos((i * 15 * Math.PI) / 180)}
+                                                y2={300 + 80 * Math.sin((i * 15 * Math.PI) / 180)}
+                                                stroke="#000080"
+                                                strokeWidth="2"
+                                            />
+                                        ))}
+                                    </g>
+                                </motion.svg>
+                            </div>
+                            <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Premium Refurbished</span>
                         </div>
                     </Link>
 
