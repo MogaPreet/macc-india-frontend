@@ -3,6 +3,9 @@ import { notFound } from 'next/navigation';
 import { getProductBySlug, getProducts } from '@/lib/firebase-services';
 import ProductPageClient from './ProductPageClient';
 
+// Disable caching to always fetch fresh product data from Firebase
+export const dynamic = 'force-dynamic';
+
 interface ProductPageProps {
     params: Promise<{ id: string }>;
 }

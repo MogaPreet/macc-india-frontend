@@ -33,20 +33,19 @@ export default function ProductsPage() {
     // Extract unique RAM and Processor options from products
     const ramOptions = useMemo(() => {
         const rams = products.map(p => p.specs?.ram).filter(Boolean) as string[];
-        return [...new Set(rams)].sort();
+        // Extract only the first word (e.g., "08GB" from "08GB DDR4 RAM")
+        const ramShort = rams.map(r => r.split(' ')[0]);
+        return [...new Set(ramShort)].sort();
     }, [products]);
 
     const processorOptions = useMemo(() => {
         const processors = products.map(p => p.specs?.processor).filter(Boolean) as string[];
-        // Extract processor family (e.g., "Intel Core i5", "AMD Ryzen 5")
-        const processorFamilies = processors.map(p => {
+        // Extract first two words (e.g., "Core I7" from "Core I7 - 10th Gen")
+        const processorShort = processors.map(p => {
             const parts = p.split(' ');
-            if (parts[0] === 'Intel' || parts[0] === 'AMD' || parts[0] === 'Apple') {
-                return parts.slice(0, 3).join(' ');
-            }
             return parts.slice(0, 2).join(' ');
         });
-        return [...new Set(processorFamilies)].sort();
+        return [...new Set(processorShort)].sort();
     }, [products]);
 
     // Fetch products and brands from Firebase
@@ -78,9 +77,11 @@ export default function ProductsPage() {
 
             const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(product.brandName);
 
+            // Match RAM by checking if the full RAM starts with the selected short version
             const matchesRAM = selectedRAM.length === 0 ||
-                (product.specs?.ram && selectedRAM.includes(product.specs.ram));
+                (product.specs?.ram && selectedRAM.some(sr => product.specs?.ram?.startsWith(sr)));
 
+            // Match processor by checking if the full processor contains the selected short version
             const matchesProcessor = selectedProcessors.length === 0 ||
                 (product.specs?.processor && selectedProcessors.some(sp => product.specs?.processor?.includes(sp)));
 
@@ -256,7 +257,7 @@ export default function ProductsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-20">
+        <div className="min-h-screen bg-gray-50 pt-20 overflow-x-hidden">
             {/* Header */}
             <div className="bg-white border-b border-gray-200 py-12">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -373,14 +374,14 @@ export default function ProductsPage() {
                     </AnimatePresence>
 
                     {/* Products Grid */}
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                         {paginatedProducts.length > 0 ? (
                             <>
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: 0.3, duration: 0.5 }}
-                                    className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6"
+                                    className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 w-full"
                                 >
                                     {paginatedProducts.map((product, index) => (
                                         <motion.div
@@ -388,9 +389,10 @@ export default function ProductsPage() {
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: index * 0.05, duration: 0.4 }}
+                                            className="min-w-0 w-full"
                                         >
-                                            <Link href={`/product/${product.slug}`}>
-                                                <div className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:border-cyan-300 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-500">
+                                            <Link href={`/product/${product.slug}`} className="block w-full">
+                                                <div className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:border-cyan-300 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-500 w-full">
                                                     {/* Image */}
                                                     <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                                                         {product.images && product.images.length > 0 ? (

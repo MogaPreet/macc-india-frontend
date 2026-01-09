@@ -150,7 +150,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
                         { name: 'Adaptor', icon: '🔌' },
-                        { name: 'Laptop Box', icon: '📦' }
+                        { name: 'Laptop Bag', icon: '👜' }
                     ].map((item, i) => (
                         <div
                             key={i}

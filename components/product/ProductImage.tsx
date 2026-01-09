@@ -3,12 +3,27 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, ZoomIn, Play, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, Play, X, Loader2 } from 'lucide-react';
 
 interface ProductImageProps {
     images: string[];
     alt: string;
     youtubeUrl?: string;
+}
+
+// Shimmer loading component
+function ImageShimmer() {
+    return (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden">
+            {/* Animated shimmer effect */}
+            <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+            {/* Loading spinner */}
+            <div className="flex flex-col items-center gap-3">
+                <Loader2 size={40} className="text-accent-cyan animate-spin" />
+                <span className="text-sm text-gray-500 font-medium">Loading image...</span>
+            </div>
+        </div>
+    );
 }
 
 // Extract YouTube video ID from various URL formats
@@ -29,6 +44,8 @@ export default function ProductImage({ images, alt, youtubeUrl }: ProductImagePr
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [isZoomed, setIsZoomed] = useState(false);
     const [isVideoOpen, setIsVideoOpen] = useState(false);
+    const [isMainImageLoading, setIsMainImageLoading] = useState(true);
+    const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
 
     // Lock body scroll when modal is open
     useEffect(() => {
@@ -48,6 +65,22 @@ export default function ProductImage({ images, alt, youtubeUrl }: ProductImagePr
     // Total items = images + 1 if there's a video
     const totalItems = images.length + (hasVideo ? 1 : 0);
     const isVideoSelected = hasVideo && selectedIndex === images.length;
+
+    // Reset loading state when selected image changes
+    useEffect(() => {
+        if (!isVideoSelected && !loadedImages.has(selectedIndex)) {
+            setIsMainImageLoading(true);
+        } else {
+            setIsMainImageLoading(false);
+        }
+    }, [selectedIndex, isVideoSelected, loadedImages]);
+
+    const handleImageLoad = (index: number) => {
+        setLoadedImages(prev => new Set(prev).add(index));
+        if (index === selectedIndex) {
+            setIsMainImageLoading(false);
+        }
+    };
 
     const handlePrevious = () => {
         setSelectedIndex((prev) => (prev === 0 ? totalItems - 1 : prev - 1));
@@ -141,16 +174,19 @@ export default function ProductImage({ images, alt, youtubeUrl }: ProductImagePr
                             exit={{ opacity: 0, x: -20 }}
                             transition={{ duration: 0.3 }}
                             whileHover={{ scale: 1.02 }}
-                            className="cursor-pointer"
+                            className="cursor-pointer relative"
                             onClick={() => setIsZoomed(true)}
                         >
+                            {/* Shimmer loading placeholder */}
+                            {isMainImageLoading && <ImageShimmer />}
                             <Image
                                 src={images[selectedIndex]}
                                 alt={`${alt} - Image ${selectedIndex + 1}`}
                                 width={600}
                                 height={400}
-                                className="w-full h-auto object-cover rounded-lg drop-shadow-xl"
+                                className={`w-full h-auto object-cover rounded-lg drop-shadow-xl transition-opacity duration-300 ${isMainImageLoading ? 'opacity-0' : 'opacity-100'}`}
                                 priority
+                                onLoad={() => handleImageLoad(selectedIndex)}
                             />
                         </motion.div>
                     )}

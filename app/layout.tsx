@@ -114,16 +114,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="overflow-x-hidden">
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
       </head>
-      <body className={`${spaceGrotesk.variable} ${notoSans.variable} font-sans antialiased`}>
+      <body className={`${spaceGrotesk.variable} ${notoSans.variable} font-sans antialiased overflow-x-hidden`}>
         <Navbar />
-        <main>{children}</main>
+        <main className="overflow-x-hidden">{children}</main>
         <Footer />
       </body>
     </html>
