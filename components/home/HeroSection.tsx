@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Shield, Recycle, Award, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import FestivalOverlay from '@/components/FestivalOverlay';
 
 const stats = [
     { icon: Shield, value: '12 Month', label: 'Warranty' },
@@ -14,6 +15,9 @@ const stats = [
 export default function HeroSection() {
     return (
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gray-900">
+            {/* Festival Animations Overlay */}
+            <FestivalOverlay />
+
             {/* Animated Background */}
             <div className="absolute inset-0">
                 {/* Base gradient */}
