@@ -9,14 +9,43 @@ import { getProducts, getBrands } from '@/lib/firebase-services';
 import { Product, Brand } from '@/lib/types';
 
 
-const priceRanges = [
-    { label: 'Under ₹50K', min: 0, max: 50000 },
-    { label: '₹50K - ₹80K', min: 50000, max: 80000 },
-    { label: '₹80K - ₹1L', min: 80000, max: 100000 },
-    { label: 'Above ₹1L', min: 100000, max: Infinity },
-];
-
 const ITEMS_PER_PAGE = 6;
+
+// Helper to extract processor family from full processor name
+const getProcessorFamily = (processor: string): string => {
+    const lower = processor.toLowerCase();
+    if (lower.includes('i9')) return 'Intel i9';
+    if (lower.includes('i7')) return 'Intel i7';
+    if (lower.includes('i5')) return 'Intel i5';
+    if (lower.includes('i3')) return 'Intel i3';
+    if (lower.includes('ryzen 9') || lower.includes('r9')) return 'Ryzen 9';
+    if (lower.includes('ryzen 7') || lower.includes('r7')) return 'Ryzen 7';
+    if (lower.includes('ryzen 5') || lower.includes('r5')) return 'Ryzen 5';
+    if (lower.includes('ryzen 3') || lower.includes('r3')) return 'Ryzen 3';
+    if (lower.includes('m1') || lower.includes('m2') || lower.includes('m3') || lower.includes('m4')) return 'Apple Silicon';
+    if (lower.includes('celeron')) return 'Intel Celeron';
+    if (lower.includes('pentium')) return 'Intel Pentium';
+    return 'Other';
+};
+
+// Helper to check if a processor matches a family
+const processorMatchesFamily = (processor: string, family: string): boolean => {
+    const lower = processor.toLowerCase();
+    const familyLower = family.toLowerCase();
+
+    if (familyLower.includes('i9')) return lower.includes('i9');
+    if (familyLower.includes('i7')) return lower.includes('i7');
+    if (familyLower.includes('i5')) return lower.includes('i5');
+    if (familyLower.includes('i3')) return lower.includes('i3');
+    if (familyLower.includes('ryzen 9')) return lower.includes('ryzen 9') || lower.includes('r9');
+    if (familyLower.includes('ryzen 7')) return lower.includes('ryzen 7') || lower.includes('r7');
+    if (familyLower.includes('ryzen 5')) return lower.includes('ryzen 5') || lower.includes('r5');
+    if (familyLower.includes('ryzen 3')) return lower.includes('ryzen 3') || lower.includes('r3');
+    if (familyLower.includes('apple')) return lower.includes('m1') || lower.includes('m2') || lower.includes('m3') || lower.includes('m4');
+    if (familyLower.includes('celeron')) return lower.includes('celeron');
+    if (familyLower.includes('pentium')) return lower.includes('pentium');
+    return false;
+};
 
 export default function ProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -26,9 +55,15 @@ export default function ProductsPage() {
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
     const [selectedRAM, setSelectedRAM] = useState<string[]>([]);
     const [selectedProcessors, setSelectedProcessors] = useState<string[]>([]);
-    const [selectedPriceRange, setSelectedPriceRange] = useState<{ min: number; max: number } | null>(null);
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 200000]);
     const [currentPage, setCurrentPage] = useState(1);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+    // Get max price from products
+    const maxPrice = useMemo(() => {
+        if (products.length === 0) return 200000;
+        return Math.max(...products.map(p => p.price)) + 10000;
+    }, [products]);
 
     // Extract unique RAM and Processor options from products
     const ramOptions = useMemo(() => {
@@ -40,12 +75,8 @@ export default function ProductsPage() {
 
     const processorOptions = useMemo(() => {
         const processors = products.map(p => p.specs?.processor).filter(Boolean) as string[];
-        // Extract first two words (e.g., "Core I7" from "Core I7 - 10th Gen")
-        const processorShort = processors.map(p => {
-            const parts = p.split(' ');
-            return parts.slice(0, 2).join(' ');
-        });
-        return [...new Set(processorShort)].sort();
+        const processorFamilies = processors.map(p => getProcessorFamily(p));
+        return [...new Set(processorFamilies)].filter(p => p !== 'Other').sort();
     }, [products]);
 
     // Fetch products and brands from Firebase
@@ -81,16 +112,15 @@ export default function ProductsPage() {
             const matchesRAM = selectedRAM.length === 0 ||
                 (product.specs?.ram && selectedRAM.some(sr => product.specs?.ram?.startsWith(sr)));
 
-            // Match processor by checking if the full processor contains the selected short version
+            // Match processor by checking if the processor belongs to the selected family
             const matchesProcessor = selectedProcessors.length === 0 ||
-                (product.specs?.processor && selectedProcessors.some(sp => product.specs?.processor?.includes(sp)));
+                (product.specs?.processor && selectedProcessors.some(family => processorMatchesFamily(product.specs!.processor!, family)));
 
-            const matchesPrice = !selectedPriceRange ||
-                (product.price >= selectedPriceRange.min && product.price < selectedPriceRange.max);
+            const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
 
             return matchesSearch && matchesBrand && matchesRAM && matchesProcessor && matchesPrice;
         });
-    }, [products, searchQuery, selectedBrands, selectedRAM, selectedProcessors, selectedPriceRange]);
+    }, [products, searchQuery, selectedBrands, selectedRAM, selectedProcessors, priceRange]);
 
     // Pagination
     const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
@@ -129,11 +159,11 @@ export default function ProductsPage() {
         setSelectedBrands([]);
         setSelectedRAM([]);
         setSelectedProcessors([]);
-        setSelectedPriceRange(null);
+        setPriceRange([0, maxPrice]);
         setCurrentPage(1);
     };
 
-    const hasActiveFilters = searchQuery || selectedBrands.length > 0 || selectedRAM.length > 0 || selectedProcessors.length > 0 || selectedPriceRange;
+    const hasActiveFilters = searchQuery || selectedBrands.length > 0 || selectedRAM.length > 0 || selectedProcessors.length > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice;
 
     const FilterSidebar = () => (
         <div className="space-y-6">
@@ -202,27 +232,92 @@ export default function ProductsPage() {
                 </div>
             </div>
 
-            {/* Price Range Filter */}
+            {/* Price Range Slider */}
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">Price Range</h3>
-                <div className="space-y-2">
-                    {priceRanges.map((range, index) => (
-                        <button
-                            key={index}
-                            onClick={() => {
-                                setSelectedPriceRange(
-                                    selectedPriceRange?.min === range.min ? null : range
-                                );
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                        <span>₹{priceRange[0].toLocaleString('en-IN')}</span>
+                        <span>₹{priceRange[1].toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="relative pt-1">
+                        {/* Min slider */}
+                        <input
+                            type="range"
+                            min={0}
+                            max={maxPrice}
+                            step={5000}
+                            value={priceRange[0]}
+                            onChange={(e) => {
+                                const newMin = Math.min(Number(e.target.value), priceRange[1] - 5000);
+                                setPriceRange([newMin, priceRange[1]]);
                                 handleFilterChange();
                             }}
-                            className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${selectedPriceRange?.min === range.min
-                                ? 'bg-cyan-50 text-cyan-700 border border-cyan-200'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            className="absolute w-full h-2 bg-transparent appearance-none pointer-events-auto cursor-pointer z-20"
+                            style={{
+                                WebkitAppearance: 'none',
+                                background: 'transparent'
+                            }}
+                        />
+                        {/* Max slider */}
+                        <input
+                            type="range"
+                            min={0}
+                            max={maxPrice}
+                            step={5000}
+                            value={priceRange[1]}
+                            onChange={(e) => {
+                                const newMax = Math.max(Number(e.target.value), priceRange[0] + 5000);
+                                setPriceRange([priceRange[0], newMax]);
+                                handleFilterChange();
+                            }}
+                            className="absolute w-full h-2 bg-transparent appearance-none pointer-events-auto cursor-pointer z-20"
+                            style={{
+                                WebkitAppearance: 'none',
+                                background: 'transparent'
+                            }}
+                        />
+                        {/* Track background */}
+                        <div className="relative h-2 bg-gray-200 rounded-full">
+                            <div
+                                className="absolute h-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full"
+                                style={{
+                                    left: `${(priceRange[0] / maxPrice) * 100}%`,
+                                    right: `${100 - (priceRange[1] / maxPrice) * 100}%`
+                                }}
+                            />
+                        </div>
+                    </div>
+                    {/* Quick preset buttons */}
+                    <div className="flex flex-wrap gap-2 mt-3">
+                        <button
+                            onClick={() => { setPriceRange([0, 50000]); handleFilterChange(); }}
+                            className={`px-3 py-1 text-xs rounded-full transition-colors ${priceRange[0] === 0 && priceRange[1] === 50000
+                                    ? 'bg-cyan-100 text-cyan-700 border border-cyan-200'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
-                            {range.label}
+                            Under ₹50K
                         </button>
-                    ))}
+                        <button
+                            onClick={() => { setPriceRange([50000, 80000]); handleFilterChange(); }}
+                            className={`px-3 py-1 text-xs rounded-full transition-colors ${priceRange[0] === 50000 && priceRange[1] === 80000
+                                    ? 'bg-cyan-100 text-cyan-700 border border-cyan-200'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            ₹50K-80K
+                        </button>
+                        <button
+                            onClick={() => { setPriceRange([0, maxPrice]); handleFilterChange(); }}
+                            className={`px-3 py-1 text-xs rounded-full transition-colors ${priceRange[0] === 0 && priceRange[1] === maxPrice
+                                    ? 'bg-cyan-100 text-cyan-700 border border-cyan-200'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            All
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
