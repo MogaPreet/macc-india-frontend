@@ -9,7 +9,7 @@ import { Menu, X, Phone, Sparkles } from 'lucide-react';
 const navLinks = [
     { name: 'Laptops', href: '/products' },
     { name: 'Categories', href: '/#categories' },
-    { name: 'Deals', href: '/#deals' },
+    { name: 'Rentals', href: '/rentals' },
 ];
 
 export default function Navbar() {

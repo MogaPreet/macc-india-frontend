@@ -26,10 +26,10 @@ function ImageShimmer() {
     );
 }
 
-// Extract YouTube video ID from various URL formats
+// Extract YouTube video ID from various URL formats (supports regular videos, shorts, embeds, and short URLs)
 function getYoutubeVideoId(url: string): string | null {
     const patterns = [
-        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+        /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([^&\n?#]+)/,
     ];
     for (const pattern of patterns) {
         const match = url.match(pattern);
