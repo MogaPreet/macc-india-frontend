@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getProducts, getBrands } from '@/lib/firebase-services';
 import { Product, Brand } from '@/lib/types';
+import DualRangeSlider from '@/components/DualRangeSlider';
 
 
 const ITEMS_PER_PAGE = 6;
@@ -64,6 +65,13 @@ export default function ProductsPage() {
         if (products.length === 0) return 200000;
         return Math.max(...products.map(p => p.price)) + 10000;
     }, [products]);
+
+    // Update price range when maxPrice changes (after products load)
+    useEffect(() => {
+        if (products.length > 0) {
+            setPriceRange(prev => [prev[0], maxPrice]);
+        }
+    }, [maxPrice, products.length]);
 
     // Extract unique RAM and Processor options from products
     const ramOptions = useMemo(() => {
@@ -235,90 +243,17 @@ export default function ProductsPage() {
             {/* Price Range Slider */}
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">Price Range</h3>
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                        <span>₹{priceRange[0].toLocaleString('en-IN')}</span>
-                        <span>₹{priceRange[1].toLocaleString('en-IN')}</span>
-                    </div>
-                    <div className="relative pt-1">
-                        {/* Min slider */}
-                        <input
-                            type="range"
-                            min={0}
-                            max={maxPrice}
-                            step={5000}
-                            value={priceRange[0]}
-                            onChange={(e) => {
-                                const newMin = Math.min(Number(e.target.value), priceRange[1] - 5000);
-                                setPriceRange([newMin, priceRange[1]]);
-                                handleFilterChange();
-                            }}
-                            className="absolute w-full h-2 bg-transparent appearance-none pointer-events-auto cursor-pointer z-20"
-                            style={{
-                                WebkitAppearance: 'none',
-                                background: 'transparent'
-                            }}
-                        />
-                        {/* Max slider */}
-                        <input
-                            type="range"
-                            min={0}
-                            max={maxPrice}
-                            step={5000}
-                            value={priceRange[1]}
-                            onChange={(e) => {
-                                const newMax = Math.max(Number(e.target.value), priceRange[0] + 5000);
-                                setPriceRange([priceRange[0], newMax]);
-                                handleFilterChange();
-                            }}
-                            className="absolute w-full h-2 bg-transparent appearance-none pointer-events-auto cursor-pointer z-20"
-                            style={{
-                                WebkitAppearance: 'none',
-                                background: 'transparent'
-                            }}
-                        />
-                        {/* Track background */}
-                        <div className="relative h-2 bg-gray-200 rounded-full">
-                            <div
-                                className="absolute h-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full"
-                                style={{
-                                    left: `${(priceRange[0] / maxPrice) * 100}%`,
-                                    right: `${100 - (priceRange[1] / maxPrice) * 100}%`
-                                }}
-                            />
-                        </div>
-                    </div>
-                    {/* Quick preset buttons */}
-                    <div className="flex flex-wrap gap-2 mt-3">
-                        <button
-                            onClick={() => { setPriceRange([0, 50000]); handleFilterChange(); }}
-                            className={`px-3 py-1 text-xs rounded-full transition-colors ${priceRange[0] === 0 && priceRange[1] === 50000
-                                    ? 'bg-cyan-100 text-cyan-700 border border-cyan-200'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            Under ₹50K
-                        </button>
-                        <button
-                            onClick={() => { setPriceRange([50000, 80000]); handleFilterChange(); }}
-                            className={`px-3 py-1 text-xs rounded-full transition-colors ${priceRange[0] === 50000 && priceRange[1] === 80000
-                                    ? 'bg-cyan-100 text-cyan-700 border border-cyan-200'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            ₹50K-80K
-                        </button>
-                        <button
-                            onClick={() => { setPriceRange([0, maxPrice]); handleFilterChange(); }}
-                            className={`px-3 py-1 text-xs rounded-full transition-colors ${priceRange[0] === 0 && priceRange[1] === maxPrice
-                                    ? 'bg-cyan-100 text-cyan-700 border border-cyan-200'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            All
-                        </button>
-                    </div>
-                </div>
+                <DualRangeSlider
+                    min={0}
+                    max={maxPrice}
+                    step={5000}
+                    value={priceRange}
+                    onChange={(newRange) => {
+                        setPriceRange(newRange);
+                        handleFilterChange();
+                    }}
+                    minGap={5000}
+                />
             </div>
         </div>
     );
