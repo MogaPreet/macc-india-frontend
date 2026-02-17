@@ -8,6 +8,8 @@ import { Menu, X, Phone, Sparkles } from 'lucide-react';
 
 const navLinks = [
     { name: 'Laptops', href: '/products' },
+    { name: 'Systems', href: '/systems' },
+    { name: 'Monitors', href: '/monitors' },
     { name: 'Categories', href: '/#categories' },
     { name: 'Rentals', href: '/rentals' },
 ];

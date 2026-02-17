@@ -11,13 +11,13 @@ export default function Home() {
   return (
     <>
       <HeroSection />
-      <BrandCarousel />
       <PromoBanner />
       <CategoriesSection />
       <ProductGrid />
       <OffersSection />
       <Testimonials />
       <EnvironmentSection />
+      <BrandCarousel />
     </>
   );
 }

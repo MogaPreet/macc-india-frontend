@@ -10,6 +10,12 @@ export interface ProductSpecs {
     os?: string;
     ports?: string;
     weight?: string;
+    // Monitor-specific specs
+    panelType?: string;
+    resolution?: string;
+    refreshRate?: string;
+    responseTime?: string;
+    displaySize?: string;
     [key: string]: string | undefined; // Allow additional custom specs
 }
 
@@ -45,6 +51,7 @@ export interface Product {
     specs: ProductSpecs;
     includedItems?: IncludedItem[];
     warranty?: Warranty;
+    productType?: string; // 'laptop' | 'monitor' | 'system'
     createdAt: Date;
     updatedAt: Date;
 }
@@ -56,6 +63,7 @@ export interface Category {
     icon?: string;
     color?: string;
     image?: string;
+    gifUrl?: string; // Optional dynamic GIF URL from backend
     order?: number;
     isActive: boolean;
     createdAt: Date;

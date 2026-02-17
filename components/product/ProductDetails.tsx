@@ -138,35 +138,37 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 </motion.div>
             )}
 
-            {/* What's Included - Dynamic from Firebase */}
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7, duration: 0.4 }}
-                className="space-y-4"
-            >
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                    <Box size={20} className="text-accent-cyan" />
-                    What&apos;s in the Box
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                        { name: 'Adaptor', icon: '🔌' },
-                        { name: 'Laptop Bag', icon: '👜' }
-                    ].map((item, i) => (
-                        <div
-                            key={i}
-                            className="flex items-center gap-3 p-3 rounded-lg bg-accent-green/5 border border-accent-green/20"
-                        >
-                            <Check size={18} className="text-accent-green flex-shrink-0" />
-                            <span className="text-foreground">
-                                <span className="mr-2">{item.icon}</span>
-                                {item.name}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-            </motion.div>
+            {/* What's Included — only show for laptops (hide for monitors/systems) */}
+            {(!product.productType || product.productType === 'laptop') && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7, duration: 0.4 }}
+                    className="space-y-4"
+                >
+                    <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                        <Box size={20} className="text-accent-cyan" />
+                        What&apos;s in the Box
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {[
+                            { name: 'Adaptor', icon: '🔌' },
+                            { name: 'Laptop Bag', icon: '👜' }
+                        ].map((item, i) => (
+                            <div
+                                key={i}
+                                className="flex items-center gap-3 p-3 rounded-lg bg-accent-green/5 border border-accent-green/20"
+                            >
+                                <Check size={18} className="text-accent-green flex-shrink-0" />
+                                <span className="text-foreground">
+                                    <span className="mr-2">{item.icon}</span>
+                                    {item.name}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
 
             {/* Warranty Section */}
             {product.warranty && (

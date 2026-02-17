@@ -53,6 +53,7 @@ const docToProduct = (doc: any): Product => {
         specs: data.specs || {},
         includedItems: data.includedItems,
         warranty: data.warranty,
+        productType: data.productType || 'laptop',
         createdAt: convertTimestamp(data.createdAt),
         updatedAt: convertTimestamp(data.updatedAt),
     };
@@ -69,9 +70,28 @@ export async function getProducts(): Promise<Product[]> {
             orderBy('createdAt', 'desc')
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(docToProduct);
+        const allProducts = snapshot.docs.map(docToProduct);
+        // Only return laptops (backward compat: products without productType are laptops)
+        return allProducts.filter(p => !p.productType || p.productType === 'laptop');
     } catch (error) {
         console.error('Error fetching products:', error);
+        return [];
+    }
+}
+
+export async function getProductsByType(type: string): Promise<Product[]> {
+    try {
+        const productsRef = collection(db, 'products');
+        const q = query(
+            productsRef,
+            where('isActive', '==', true),
+            where('productType', '==', type),
+            orderBy('createdAt', 'desc')
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(docToProduct);
+    } catch (error) {
+        console.error(`Error fetching ${type} products:`, error);
         return [];
     }
 }
@@ -166,6 +186,7 @@ export async function getCategories(): Promise<Category[]> {
                 icon: data.icon,
                 color: data.color,
                 image: data.image,
+                gifUrl: data.gifUrl,
                 order: data.order || 0,
                 isActive: data.isActive !== false,
                 createdAt: convertTimestamp(data.createdAt),
