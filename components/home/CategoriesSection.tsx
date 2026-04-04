@@ -60,7 +60,7 @@ export default function CategoriesSection() {
     const otherCategories = categories.filter(c => c.id !== heroCategory.id);
 
     return (
-        <section className="relative bg-gradient-to-b from-gray-900 via-[#0a0a0f] to-gray-900 pb-20 -mt-20 z-0">
+        <section className="relative bg-gradient-to-b from-gray-900 via-[#0a0a0f] to-black pb-20 -mt-20 z-0">
             {/* Top fade — blends from Hero's dark into this section */}
             <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-gray-900/80 to-transparent z-10 pointer-events-none" />
 
@@ -68,8 +68,8 @@ export default function CategoriesSection() {
             <div className="absolute top-32 -left-40 w-80 h-80 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-20 -right-40 w-96 h-96 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Bottom fade — eases into the light ProductGrid below */}
-            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-background z-10 pointer-events-none" />
+            {/* Bottom fade — blends seamlessly into the dark ProductGrid below */}
+            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-black z-10 pointer-events-none" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 relative z-20">
                 <motion.div

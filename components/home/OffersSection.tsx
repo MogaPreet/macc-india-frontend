@@ -79,9 +79,9 @@ export default function OffersSection() {
     if (deals.length === 0) return null;
 
     return (
-        <section className="pt-16 md:pt-24 pb-16 md:pb-24 relative overflow-hidden">
+        <section className="py-20 md:py-20 relative overflow-hidden">
             {/* Decorative floating elements — energetic transition from ProductGrid above */}
-            <div className="absolute top-0 left-0 right-0 h-32 z-[2] pointer-events-none overflow-hidden">
+            {/* <div className="absolute top-0 left-0 right-0 h-32 z-[2] pointer-events-none overflow-hidden">
                 {['⚡', '🔥', '💎', '✨', '🏷️', '💰', '⚡', '✨', '🔥'].map((emoji, i) => (
                     <motion.span
                         key={i}
@@ -98,7 +98,7 @@ export default function OffersSection() {
                         {emoji}
                     </motion.span>
                 ))}
-            </div>
+            </div> */}
 
             {/* Animated Background */}
             <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900 to-black">

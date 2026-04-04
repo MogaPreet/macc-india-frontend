@@ -9,7 +9,7 @@ export default function Testimonials() {
     const duplicatedTestimonials = [...testimonials, ...testimonials];
 
     return (
-        <section className="py-16 md:py-24 bg-white overflow-hidden">
+        <section className="py-20 md:py-28 bg-gradient-to-b from-gray-900 to-[#0d0d14] overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
                 <motion.div
@@ -19,10 +19,10 @@ export default function Testimonials() {
                     transition={{ duration: 0.6 }}
                     className="text-center mb-12"
                 >
-                    <h2 className="text-sm font-semibold text-accent-cyan uppercase tracking-wider mb-2">
+                    <h2 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-2">
                         Customer Love
                     </h2>
-                    <p className="text-3xl md:text-4xl font-bold text-foreground">
+                    <p className="text-3xl md:text-4xl font-bold text-white">
                         What People Are Saying
                     </p>
                 </motion.div>
@@ -31,8 +31,8 @@ export default function Testimonials() {
             {/* Marquee Container */}
             <div className="relative">
                 {/* Gradient Fades */}
-                <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-                <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+                <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-[#0d0d14] to-transparent z-10 pointer-events-none"></div>
+                <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-[#0d0d14] to-transparent z-10 pointer-events-none"></div>
 
                 {/* Scrolling Content */}
                 <motion.div
@@ -52,7 +52,7 @@ export default function Testimonials() {
                             key={`${testimonial.id}-${index}`}
                             className="flex-shrink-0 w-80 md:w-96"
                         >
-                            <div className="glass rounded-2xl p-6 h-full border border-gray-200/50">
+                            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 h-full border border-white/10 hover:border-cyan-500/20 transition-colors duration-300">
                                 {/* Quote Icon */}
                                 <div className="mb-4">
                                     <Quote size={24} className="text-accent-cyan/30" />
@@ -70,7 +70,7 @@ export default function Testimonials() {
                                 </div>
 
                                 {/* Text */}
-                                <p className="text-text-secondary mb-6 leading-relaxed">
+                                <p className="text-gray-300 mb-6 leading-relaxed">
                                     &ldquo;{testimonial.text}&rdquo;
                                 </p>
 
@@ -80,10 +80,10 @@ export default function Testimonials() {
                                         {testimonial.avatar}
                                     </div>
                                     <div>
-                                        <div className="font-semibold text-foreground text-sm">
+                                        <div className="font-semibold text-white text-sm">
                                             {testimonial.name}
                                         </div>
-                                        <div className="text-xs text-text-muted">
+                                        <div className="text-xs text-gray-500">
                                             {testimonial.location}
                                         </div>
                                     </div>

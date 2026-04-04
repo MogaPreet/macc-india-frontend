@@ -10,7 +10,7 @@ const navLinks = [
     { name: 'Laptops', href: '/products' },
     { name: 'Systems', href: '/systems' },
     { name: 'Monitors', href: '/monitors' },
-    { name: 'Categories', href: '/#categories' },
+    { name: 'Categories', href: '/categories' },
     { name: 'Rentals', href: '/rentals' },
 ];
 

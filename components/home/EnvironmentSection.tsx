@@ -60,7 +60,7 @@ export default function EnvironmentSection() {
     const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
 
     return (
-        <section ref={containerRef} className="relative py-24 overflow-hidden bg-gradient-to-b from-gray-900 via-emerald-950 to-gray-900">
+        <section ref={containerRef} className="relative py-20 md:py-28 overflow-hidden bg-gradient-to-b from-gray-900 via-emerald-950 to-gray-900">
             {/* Animated Background */}
             <div className="absolute inset-0">
                 {/* Gradient Orbs */}

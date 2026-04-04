@@ -35,7 +35,7 @@ export default function BrandCarousel() {
     const duplicatedBrands = [...brands, ...brands, ...brands];
 
     return (
-        <section className="py-10 md:py-14 bg-white overflow-hidden">
+        <section className="py-16 md:py-20 bg-gradient-to-b from-[#0d0d14] to-gray-900 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
                 <motion.div
@@ -45,10 +45,10 @@ export default function BrandCarousel() {
                     transition={{ duration: 0.6 }}
                     className="text-center mb-6 md:mb-8"
                 >
-                    <h2 className="text-sm font-semibold text-accent-cyan uppercase tracking-wider mb-1">
+                    <h2 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-1">
                         Trusted Brands
                     </h2>
-                    <p className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
+                    <p className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
                         Shop Top Laptop Brands
                     </p>
                 </motion.div>
@@ -57,10 +57,10 @@ export default function BrandCarousel() {
             {/* Marquee Container */}
             <div className="relative">
                 {/* Gradient Fade Left */}
-                <div className="absolute left-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+                <div className="absolute left-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-r from-gray-900 to-transparent z-10 pointer-events-none"></div>
 
                 {/* Gradient Fade Right */}
-                <div className="absolute right-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+                <div className="absolute right-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-l from-gray-900 to-transparent z-10 pointer-events-none"></div>
 
                 {/* Scrolling Marquee - Infinite */}
                 <div className="flex animate-marquee hover:[animation-play-state:paused]">
@@ -69,12 +69,12 @@ export default function BrandCarousel() {
                             key={`${brand.name}-${index}`}
                             className="flex-shrink-0 mx-4 md:mx-8 lg:mx-10"
                         >
-                            <div className="relative w-20 h-12 md:w-28 md:h-14 lg:w-32 lg:h-16 flex items-center justify-center grayscale hover:grayscale-0 opacity-50 hover:opacity-100 transition-all duration-300 cursor-pointer">
+                            <div className="relative w-20 h-12 md:w-28 md:h-14 lg:w-32 lg:h-16 flex items-center justify-center opacity-40 hover:opacity-90 transition-all duration-300 cursor-pointer">
                                 <Image
                                     src={brand.logo}
                                     alt={`${brand.name} logo`}
                                     fill
-                                    className="object-contain p-1 md:p-2"
+                                    className="object-contain p-1 md:p-2 invert brightness-0 invert"
                                     unoptimized
                                 />
                             </div>
