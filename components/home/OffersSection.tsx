@@ -79,13 +79,34 @@ export default function OffersSection() {
     if (deals.length === 0) return null;
 
     return (
-        <section className="py-16 md:py-24 relative overflow-hidden">
+        <section className="pt-16 md:pt-24 pb-16 md:pb-24 relative overflow-hidden">
+            {/* Decorative floating elements — energetic transition from ProductGrid above */}
+            <div className="absolute top-0 left-0 right-0 h-32 z-[2] pointer-events-none overflow-hidden">
+                {['⚡', '🔥', '💎', '✨', '🏷️', '💰', '⚡', '✨', '🔥'].map((emoji, i) => (
+                    <motion.span
+                        key={i}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: [0.15, 0.35, 0.15], y: [-5, -15, -5] }}
+                        viewport={{ once: false }}
+                        transition={{ duration: 3 + (i * 0.5), repeat: Infinity, delay: i * 0.3 }}
+                        className="absolute text-2xl md:text-3xl"
+                        style={{
+                            left: `${8 + i * 10}%`,
+                            top: `${15 + (i % 3) * 25}%`,
+                        }}
+                    >
+                        {emoji}
+                    </motion.span>
+                ))}
+            </div>
+
             {/* Animated Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-                <div className="absolute inset-0 neon-grid opacity-20"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900 to-black">
+                <div className="absolute inset-0 neon-grid opacity-10"></div>
                 {/* Floating Orbs */}
-                <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/15 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute top-40 left-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
                 <div className="absolute bottom-20 right-20 w-96 h-96 bg-cyan-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute top-10 right-1/3 w-64 h-64 bg-amber-500/8 rounded-full blur-3xl pointer-events-none"></div>
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

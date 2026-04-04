@@ -32,25 +32,67 @@ export default function PromoBanner() {
         fetchOffer();
     }, []);
 
-    // Don't render anything if no active offer
-    if (loading) return null;
+    // Shimmer skeleton while loading
+    if (loading) return (
+        <section className="py-16 md:py-24 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-[#0d0d14] to-gray-900" />
+            <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-gray-900 to-transparent z-[1] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-gray-900 z-[1] pointer-events-none" />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                {/* Header shimmer */}
+                <div className="text-center mb-12">
+                    <div className="inline-block h-8 w-40 bg-white/10 rounded-full animate-pulse mb-4" />
+                    <div className="h-10 w-72 bg-white/10 rounded-lg animate-pulse mx-auto mb-3" />
+                    <div className="h-5 w-56 bg-white/5 rounded-lg animate-pulse mx-auto" />
+                </div>
+                {/* Product cards shimmer */}
+                <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="bg-white/5 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10">
+                            <div className="aspect-[4/3] bg-white/10 animate-pulse" />
+                            <div className="p-4 space-y-3">
+                                <div className="h-4 w-3/4 bg-white/10 rounded animate-pulse" />
+                                <div className="flex gap-2">
+                                    <div className="h-5 w-20 bg-amber-500/20 rounded animate-pulse" />
+                                    <div className="h-5 w-16 bg-white/5 rounded animate-pulse" />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                {/* Mobile shimmer - horizontal scroll */}
+                <div className="flex md:hidden gap-4 overflow-hidden pl-4">
+                    {[1, 2].map(i => (
+                        <div key={i} className="flex-shrink-0 w-72 bg-white/5 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10">
+                            <div className="aspect-[4/3] bg-white/10 animate-pulse" />
+                            <div className="p-4 space-y-3">
+                                <div className="h-4 w-3/4 bg-white/10 rounded animate-pulse" />
+                                <div className="flex gap-2">
+                                    <div className="h-5 w-20 bg-amber-500/20 rounded animate-pulse" />
+                                    <div className="h-5 w-16 bg-white/5 rounded animate-pulse" />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
     if (!offer || products.length === 0) return null;
 
     return (
         <section className="py-16 md:py-24 relative overflow-hidden">
-            {/* Background Image */}
-            <div className="absolute inset-0">
-                <Image
-                    src={offer.backgroundImage}
-                    alt={offer.title}
-                    fill
-                    className="object-cover"
-                    priority
-                />
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/80" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/40" />
+            {/* Blended Background — seamlessly continues from HeroSection */}
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-[#0d0d14] to-gray-900">
+                {/* Ambient glow orbs for visual continuity with Hero */}
+                <div className="absolute top-10 -left-32 w-80 h-80 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute bottom-10 -right-32 w-96 h-96 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-r from-amber-500/5 to-orange-500/5 rounded-full blur-3xl pointer-events-none" />
             </div>
+            {/* Top fade — blends from Hero above */}
+            <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-gray-900 to-transparent z-[1] pointer-events-none" />
+            {/* Bottom fade — blends into CategoriesSection below */}
+            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-gray-900 z-[1] pointer-events-none" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 {/* Section Header */}

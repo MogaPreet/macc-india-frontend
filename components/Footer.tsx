@@ -4,8 +4,8 @@ import { Heart, MapPin, Mail, Phone } from 'lucide-react';
 const footerLinks = {
     shop: [
         { name: 'All Laptops', href: '/#products' },
-        { name: 'MacBooks', href: '/category/macbook' },
-        { name: 'Windows Laptops', href: '/category/windows' },
+        { name: 'Systems', href: '/systems' },
+        { name: 'Monitors', href: '/monitors' },
         { name: 'Components', href: '/components' },
     ],
     support: [
