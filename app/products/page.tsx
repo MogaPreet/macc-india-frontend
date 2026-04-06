@@ -206,54 +206,69 @@ export default function ProductsPage() {
             {/* Brand Filter */}
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">Brand</h3>
-                <div className="space-y-2">
-                    {brands.map(brand => (
-                        <label key={brand.id} className="flex items-center gap-3 cursor-pointer group">
-                            <input
-                                type="checkbox"
-                                checked={selectedBrands.includes(brand.name)}
-                                onChange={() => toggleBrand(brand.name)}
-                                className="w-4 h-4 rounded border-gray-300 bg-white text-cyan-600 focus:ring-cyan-500 focus:ring-offset-0"
-                            />
-                            <span className="text-gray-600 group-hover:text-gray-900 transition-colors">{brand.name}</span>
-                        </label>
-                    ))}
+                <div className="flex flex-wrap gap-2">
+                    {brands.map(brand => {
+                        const isSelected = selectedBrands.includes(brand.name);
+                        return (
+                            <button
+                                key={brand.id}
+                                onClick={() => toggleBrand(brand.name)}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
+                                    isSelected
+                                        ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
+                                        : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
+                                }`}
+                            >
+                                {brand.name}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* RAM Filter */}
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">RAM</h3>
-                <div className="space-y-2">
-                    {ramOptions.map(ram => (
-                        <label key={ram} className="flex items-center gap-3 cursor-pointer group">
-                            <input
-                                type="checkbox"
-                                checked={selectedRAM.includes(ram)}
-                                onChange={() => toggleRAM(ram)}
-                                className="w-4 h-4 rounded border-gray-300 bg-white text-cyan-600 focus:ring-cyan-500 focus:ring-offset-0"
-                            />
-                            <span className="text-gray-600 group-hover:text-gray-900 transition-colors">{ram}</span>
-                        </label>
-                    ))}
+                <div className="flex flex-wrap gap-2">
+                    {ramOptions.map(ram => {
+                        const isSelected = selectedRAM.includes(ram);
+                        return (
+                            <button
+                                key={ram}
+                                onClick={() => toggleRAM(ram)}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
+                                    isSelected
+                                        ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
+                                        : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
+                                }`}
+                            >
+                                {ram}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* Processor Filter */}
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">Processor</h3>
-                <div className="space-y-2">
-                    {processorOptions.map(processor => (
-                        <label key={processor} className="flex items-center gap-3 cursor-pointer group">
-                            <input
-                                type="checkbox"
-                                checked={selectedProcessors.includes(processor)}
-                                onChange={() => toggleProcessor(processor)}
-                                className="w-4 h-4 rounded border-gray-300 bg-white text-cyan-600 focus:ring-cyan-500 focus:ring-offset-0"
-                            />
-                            <span className="text-gray-600 group-hover:text-gray-900 transition-colors">{processor}</span>
-                        </label>
-                    ))}
+                <div className="flex flex-wrap gap-2">
+                    {processorOptions.map(processor => {
+                        const isSelected = selectedProcessors.includes(processor);
+                        return (
+                            <button
+                                key={processor}
+                                onClick={() => toggleProcessor(processor)}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
+                                    isSelected
+                                        ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
+                                        : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
+                                }`}
+                            >
+                                {processor}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
@@ -403,7 +418,7 @@ export default function ProductsPage() {
                                     animate={{ x: 0 }}
                                     exit={{ x: '-100%' }}
                                     transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                                    className="lg:hidden fixed left-0 top-0 bottom-0 w-80 bg-white border-r border-gray-200 z-50 p-6 overflow-y-auto"
+                                    className="lg:hidden fixed left-0 top-0 bottom-0 w-80 bg-white border-r border-gray-200 z-50 p-6 flex flex-col"
                                 >
                                     <div className="flex items-center justify-between mb-6">
                                         <h2 className="text-xl font-bold text-gray-900">Filters</h2>
@@ -414,7 +429,17 @@ export default function ProductsPage() {
                                             <X size={24} />
                                         </button>
                                     </div>
-                                    <FilterSidebar />
+                                    <div className="flex-1 overflow-y-auto">
+                                        <FilterSidebar />
+                                    </div>
+                                    <div className="mt-6 pt-6 border-t border-gray-200">
+                                        <button
+                                            onClick={() => setShowMobileFilters(false)}
+                                            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl font-bold shadow-md shadow-cyan-500/20 active:scale-95 transition-all text-center"
+                                        >
+                                            Show {filteredProducts.length} Results
+                                        </button>
+                                    </div>
                                 </motion.div>
                             </>
                         )}
