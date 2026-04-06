@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, X, ChevronLeft, ChevronRight, Cpu, HardDrive, Monitor, MemoryStick } from 'lucide-react';
 import Image from 'next/image';
@@ -57,7 +57,9 @@ export default function ProductsPage() {
     const [selectedRAM, setSelectedRAM] = useState<string[]>([]);
     const [selectedProcessors, setSelectedProcessors] = useState<string[]>([]);
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 200000]);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const observerRef = useRef<IntersectionObserver | null>(null);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
     // Get max price from products
@@ -130,15 +132,30 @@ export default function ProductsPage() {
         });
     }, [products, searchQuery, selectedBrands, selectedRAM, selectedProcessors, priceRange]);
 
-    // Pagination
-    const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
-    const paginatedProducts = filteredProducts.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    );
+    // Infinite Scroll setup
+    const hasMore = visibleCount < filteredProducts.length;
+    const displayedProducts = filteredProducts.slice(0, visibleCount);
+
+    const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
+        if (loading || isLoadingMore) return;
+        if (observerRef.current) observerRef.current.disconnect();
+
+        observerRef.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore) {
+                setIsLoadingMore(true);
+                // Simulate a slight network delay to show the nice loading state
+                setTimeout(() => {
+                    setVisibleCount(prev => prev + ITEMS_PER_PAGE);
+                    setIsLoadingMore(false);
+                }, 800);
+            }
+        });
+
+        if (node) observerRef.current.observe(node);
+    }, [loading, isLoadingMore, hasMore]);
 
     const handleFilterChange = () => {
-        setCurrentPage(1);
+        setVisibleCount(ITEMS_PER_PAGE);
     };
 
     const toggleBrand = (brand: string) => {
@@ -168,7 +185,7 @@ export default function ProductsPage() {
         setSelectedRAM([]);
         setSelectedProcessors([]);
         setPriceRange([0, maxPrice]);
-        setCurrentPage(1);
+        setVisibleCount(ITEMS_PER_PAGE);
     };
 
     const hasActiveFilters = searchQuery || selectedBrands.length > 0 || selectedRAM.length > 0 || selectedProcessors.length > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice;
@@ -404,8 +421,8 @@ export default function ProductsPage() {
                     </AnimatePresence>
 
                     {/* Products Grid */}
-                    <div className="flex-1 min-w-0">
-                        {paginatedProducts.length > 0 ? (
+                    <div className="flex-1 min-w-0 pb-20">
+                        {displayedProducts.length > 0 ? (
                             <>
                                 <motion.div
                                     initial={{ opacity: 0 }}
@@ -413,7 +430,7 @@ export default function ProductsPage() {
                                     transition={{ delay: 0.3, duration: 0.5 }}
                                     className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 w-full"
                                 >
-                                    {paginatedProducts.map((product, index) => (
+                                    {displayedProducts.map((product, index) => (
                                         <motion.div
                                             key={product.id}
                                             initial={{ opacity: 0, y: 20 }}
@@ -506,43 +523,28 @@ export default function ProductsPage() {
                                     ))}
                                 </motion.div>
 
-                                {/* Pagination */}
-                                {totalPages > 1 && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.4, duration: 0.5 }}
-                                        className="flex items-center justify-center gap-2 mt-12"
+                                {/* Infinite Scroll Loader Target */}
+                                {hasMore && (
+                                    <div 
+                                        ref={loadMoreRef} 
+                                        className="mt-12 flex flex-col items-center justify-center p-6 space-y-4"
                                     >
-                                        <button
-                                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                            disabled={currentPage === 1}
-                                            className="p-2 rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-gray-900 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                        >
-                                            <ChevronLeft size={20} />
-                                        </button>
-
-                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                            <button
-                                                key={page}
-                                                onClick={() => setCurrentPage(page)}
-                                                className={`w-10 h-10 rounded-lg font-medium transition-all ${currentPage === page
-                                                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white'
-                                                    : 'bg-white border border-gray-200 text-gray-600 hover:text-gray-900 hover:border-gray-300'
-                                                    }`}
-                                            >
-                                                {page}
-                                            </button>
-                                        ))}
-
-                                        <button
-                                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                            disabled={currentPage === totalPages}
-                                            className="p-2 rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-gray-900 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                        >
-                                            <ChevronRight size={20} />
-                                        </button>
-                                    </motion.div>
+                                        <AnimatePresence>
+                                            {isLoadingMore && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    className="flex flex-col items-center"
+                                                >
+                                                    <div className="w-8 h-8 border-4 border-cyan-100 border-t-cyan-500 rounded-full animate-spin mb-3"></div>
+                                                    <span className="text-sm font-medium text-gray-500 bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent animate-pulse">
+                                                        Discovering high-performance laptops...
+                                                    </span>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
                                 )}
                             </>
                         ) : (

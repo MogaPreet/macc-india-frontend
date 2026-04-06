@@ -1,6 +1,8 @@
 'use client';
 
-import { useCallback, useRef, useEffect, useState } from 'react';
+import * as React from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Slider from '@mui/material/Slider';
 
 interface DualRangeSliderProps {
     min: number;
@@ -18,144 +20,226 @@ export default function DualRangeSlider({
     step,
     value,
     onChange,
-    minGap = 5000,
+    minGap = 1000,
     formatLabel = (v) => `₹${v.toLocaleString('en-IN')}`
 }: DualRangeSliderProps) {
-    const trackRef = useRef<HTMLDivElement>(null);
-    const [dragging, setDragging] = useState<'min' | 'max' | null>(null);
+    // We maintain a local state to ensure MUI slider drags smoothly without 
+    // waiting for the parent component to finish rendering heavy product filters.
+    const [localValue, setLocalValue] = useState<number[]>([value[0], value[1]]);
+    
+    // Inputs state
+    const [minInput, setMinInput] = useState(value[0].toString());
+    const [maxInput, setMaxInput] = useState(value[1].toString());
+    const [minFocused, setMinFocused] = useState(false);
+    const [maxFocused, setMaxFocused] = useState(false);
 
-    const getPercentage = (val: number) => ((val - min) / (max - min)) * 100;
+    // Provide a ref to check if we are actively dragging so we don't overwrite localValue
+    const isDragging = useRef(false);
 
-    const getValueFromPosition = useCallback((clientX: number) => {
-        if (!trackRef.current) return min;
-        const rect = trackRef.current.getBoundingClientRect();
-        const percentage = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-        const rawValue = min + percentage * (max - min);
-        // Round to nearest step
-        return Math.round(rawValue / step) * step;
-    }, [min, max, step]);
+    // Sync from parent if we're not actively dragging
+    useEffect(() => {
+        if (!isDragging.current) {
+            setLocalValue([value[0], value[1]]);
+            if (!minFocused) setMinInput(Math.round(value[0]).toString());
+            if (!maxFocused) setMaxInput(Math.round(value[1]).toString());
+        }
+    }, [value, minFocused, maxFocused]);
 
-    const handleMouseDown = (e: React.MouseEvent | React.TouchEvent, handle: 'min' | 'max') => {
-        e.preventDefault();
-        setDragging(handle);
+    // Matches the MUI sliding logic behavior exactly as requested
+    const handleChange = (
+        event: Event,
+        newValue: number | number[],
+        activeThumb: number,
+    ) => {
+        if (!Array.isArray(newValue)) {
+            return;
+        }
+
+        let updatedValue = [...localValue];
+
+        if (activeThumb === 0) {
+            updatedValue = [Math.min(newValue[0], localValue[1] - minGap), localValue[1]];
+        } else {
+            updatedValue = [localValue[0], Math.max(newValue[1], localValue[0] + minGap)];
+        }
+
+        setLocalValue(updatedValue);
+        // deliberately NOT calling onChange here to prevent realtime lag from heavy parent UI updates
     };
 
-    const handleMove = useCallback((clientX: number) => {
-        if (!dragging) return;
+    const handleDragStart = () => {
+        isDragging.current = true;
+    };
 
-        const newValue = getValueFromPosition(clientX);
+    const handleDragStop = () => {
+        isDragging.current = false;
+    };
 
-        if (dragging === 'min') {
-            const clampedMin = Math.max(min, Math.min(newValue, value[1] - minGap));
-            if (clampedMin !== value[0]) {
-                onChange([clampedMin, value[1]]);
-            }
-        } else {
-            const clampedMax = Math.min(max, Math.max(newValue, value[0] + minGap));
-            if (clampedMax !== value[1]) {
-                onChange([value[0], clampedMax]);
-            }
+    const commitMinInput = () => {
+        const parsed = parseInt(minInput, 10);
+        if (isNaN(parsed)) {
+            setMinInput(Math.round(localValue[0]).toString());
+            return;
         }
-    }, [dragging, getValueFromPosition, min, max, minGap, value, onChange]);
+        const clamped = Math.max(min, Math.min(parsed, localValue[1] - minGap));
+        const newArr: [number, number] = [clamped, localValue[1]];
+        setLocalValue(newArr);
+        onChange(newArr);
+        setMinInput(clamped.toString());
+    };
 
-    const handleEnd = useCallback(() => {
-        setDragging(null);
-    }, []);
+    const commitMaxInput = () => {
+        const parsed = parseInt(maxInput, 10);
+        if (isNaN(parsed)) {
+            setMaxInput(Math.round(localValue[1]).toString());
+            return;
+        }
+        const clamped = Math.min(max, Math.max(parsed, localValue[0] + minGap));
+        const newArr: [number, number] = [localValue[0], clamped];
+        setLocalValue(newArr);
+        onChange(newArr);
+        setMaxInput(clamped.toString());
+    };
 
-    // Global mouse/touch move and up handlers
-    useEffect(() => {
-        if (!dragging) return;
+    const handleMinKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            commitMinInput();
+            (e.target as HTMLInputElement).blur();
+        }
+    };
 
-        const handleMouseMove = (e: MouseEvent) => handleMove(e.clientX);
-        const handleTouchMove = (e: TouchEvent) => {
-            if (e.touches.length > 0) {
-                handleMove(e.touches[0].clientX);
-            }
-        };
-
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleEnd);
-        document.addEventListener('touchmove', handleTouchMove);
-        document.addEventListener('touchend', handleEnd);
-
-        return () => {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleEnd);
-            document.removeEventListener('touchmove', handleTouchMove);
-            document.removeEventListener('touchend', handleEnd);
-        };
-    }, [dragging, handleMove, handleEnd]);
-
-    // Handle track click to move nearest thumb
-    const handleTrackClick = (e: React.MouseEvent) => {
-        const clickValue = getValueFromPosition(e.clientX);
-        const distToMin = Math.abs(clickValue - value[0]);
-        const distToMax = Math.abs(clickValue - value[1]);
-
-        if (distToMin < distToMax) {
-            const clampedMin = Math.max(min, Math.min(clickValue, value[1] - minGap));
-            onChange([clampedMin, value[1]]);
-        } else {
-            const clampedMax = Math.min(max, Math.max(clickValue, value[0] + minGap));
-            onChange([value[0], clampedMax]);
+    const handleMaxKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            commitMaxInput();
+            (e.target as HTMLInputElement).blur();
         }
     };
 
     return (
-        <div className="space-y-3">
-            {/* Labels */}
-            <div className="flex items-center justify-between text-sm text-gray-600">
-                <span className="font-medium">{formatLabel(value[0])}</span>
-                <span className="font-medium">{formatLabel(value[1])}</span>
-            </div>
-
-            {/* Slider */}
-            <div
-                ref={trackRef}
-                className="relative h-10 flex items-center cursor-pointer select-none"
-                onClick={handleTrackClick}
-            >
-                {/* Track background */}
-                <div className="absolute w-full h-2 bg-gray-200 rounded-full">
-                    {/* Active range */}
-                    <div
-                        className="absolute h-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full"
-                        style={{
-                            left: `${getPercentage(value[0])}%`,
-                            right: `${100 - getPercentage(value[1])}%`
-                        }}
-                    />
+        <div className="space-y-4">
+            {/* Editable Price Inputs */}
+            <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                    <div className="flex-1 relative">
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">₹</span>
+                        <input
+                            type="text"
+                            inputMode="numeric"
+                            value={minInput}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^\d]/g, '');
+                                setMinInput(val);
+                            }}
+                            onFocus={() => setMinFocused(true)}
+                            onBlur={() => {
+                                setMinFocused(false);
+                                commitMinInput();
+                            }}
+                            onKeyDown={handleMinKeyDown}
+                            className="w-full pl-6 pr-2 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all text-center tabular-nums"
+                            aria-label="Minimum price"
+                        />
+                    </div>
+                    <span className="text-gray-300 text-sm font-medium select-none leading-none pb-0.5">—</span>
+                    <div className="flex-1 relative">
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">₹</span>
+                        <input
+                            type="text"
+                            inputMode="numeric"
+                            value={maxInput}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^\d]/g, '');
+                                setMaxInput(val);
+                            }}
+                            onFocus={() => setMaxFocused(true)}
+                            onBlur={() => {
+                                setMaxFocused(false);
+                                commitMaxInput();
+                            }}
+                            onKeyDown={handleMaxKeyDown}
+                            className="w-full pl-6 pr-2 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all text-center tabular-nums"
+                            aria-label="Maximum price"
+                        />
+                    </div>
                 </div>
+                <div className="flex items-center gap-2">
+                    <span className="flex-1 text-[10px] text-gray-400 text-center">Min</span>
+                    <span className="text-sm select-none invisible">—</span>
+                    <span className="flex-1 text-[10px] text-gray-400 text-center">Max</span>
+                </div>
+            </div>
 
-                {/* Min Thumb */}
-                <div
-                    className={`absolute w-6 h-6 -ml-3 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 border-[3px] border-white shadow-lg cursor-grab transition-transform ${dragging === 'min' ? 'scale-110 cursor-grabbing shadow-xl' : 'hover:scale-110'}`}
-                    style={{ left: `${getPercentage(value[0])}%` }}
-                    onMouseDown={(e) => handleMouseDown(e, 'min')}
-                    onTouchStart={(e) => handleMouseDown(e, 'min')}
-                    onClick={(e) => e.stopPropagation()}
-                />
-
-                {/* Max Thumb */}
-                <div
-                    className={`absolute w-6 h-6 -ml-3 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 border-[3px] border-white shadow-lg cursor-grab transition-transform ${dragging === 'max' ? 'scale-110 cursor-grabbing shadow-xl' : 'hover:scale-110'}`}
-                    style={{ left: `${getPercentage(value[1])}%` }}
-                    onMouseDown={(e) => handleMouseDown(e, 'max')}
-                    onTouchStart={(e) => handleMouseDown(e, 'max')}
-                    onClick={(e) => e.stopPropagation()}
+            {/* MUI Slider wrapped in a container with padding so thumbs aren't cropped */}
+            <div className="px-2 pt-2">
+                <Slider
+                    min={min}
+                    max={max}
+                    step={1}
+                    value={localValue}
+                    onChange={handleChange}
+                    onChangeCommitted={handleDragStop}
+                    onMouseDown={handleDragStart}
+                    onTouchStart={handleDragStart}
+                    disableSwap
+                    valueLabelDisplay="auto"
+                    valueLabelFormat={(v) => `₹${v.toLocaleString('en-IN')}`}
+                    sx={{
+                        color: '#06b6d4',
+                        height: 6,
+                        '& .MuiSlider-track': {
+                            border: 'none',
+                            background: 'linear-gradient(90deg, #06b6d4, #3b82f6)',
+                        },
+                        '& .MuiSlider-rail': {
+                            backgroundColor: '#e5e7eb',
+                            opacity: 1,
+                        },
+                        '& .MuiSlider-thumb': {
+                            height: 24,
+                            width: 24,
+                            backgroundColor: '#fff',
+                            border: '3px solid white',
+                            background: 'linear-gradient(135deg, #22d3ee, #0891b2)',
+                            boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
+                            '&:hover': {
+                                boxShadow: '0px 0px 0px 8px rgba(6, 182, 212, 0.16)',
+                            },
+                            '&.Mui-active': {
+                                boxShadow: '0px 0px 0px 14px rgba(6, 182, 212, 0.16)',
+                            },
+                        },
+                    }}
                 />
             </div>
 
-            {/* Reset button */}
-            <div className="flex gap-2">
+            {/* Range labels beneath slider */}
+            <div className="flex items-center justify-between text-[10px] text-gray-400 -mt-3">
+                <span>{formatLabel(min)}</span>
+                <span>{formatLabel(max)}</span>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex gap-2 pt-2 border-t border-gray-100">
                 <button
-                    onClick={() => onChange([min, max])}
-                    className={`px-3 py-1 text-xs rounded-full transition-colors ${value[0] === min && value[1] === max
-                            ? 'bg-cyan-100 text-cyan-700 border border-cyan-200'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    onClick={() => {
+                        const all: [number, number] = [min, max];
+                        setLocalValue(all);
+                        onChange(all);
+                    }}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex-1 text-center
+                        ${localValue[0] === min && localValue[1] === max
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 border border-gray-200/50'
                         }`}
+                    disabled={localValue[0] === min && localValue[1] === max}
                 >
-                    All
+                    Clear
+                </button>
+                <button
+                    onClick={() => onChange([localValue[0], localValue[1]])}
+                    className="flex-[2] px-3 py-1.5 text-xs font-semibold rounded-lg transition-all bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 shadow-sm hover:shadow active:scale-[0.98]"
+                >
+                    Apply Filter
                 </button>
             </div>
         </div>

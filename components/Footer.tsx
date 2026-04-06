@@ -42,7 +42,7 @@ export default function Footer() {
                             <a href="mailto:hello@macc-india.com" className="hover:text-cyan-400 transition-colors">
                                 <Mail size={20} />
                             </a>
-                            <a href="tel:+919876543210" className="hover:text-cyan-400 transition-colors">
+                            <a href="tel:+919143430202" className="hover:text-cyan-400 transition-colors">
                                 <Phone size={20} />
                             </a>
                         </div>

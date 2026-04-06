@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Cpu, HardDrive, Monitor, MemoryStick, Battery, Laptop, Usb, Scale, Box, Check, X, Shield } from 'lucide-react';
+import { Cpu, HardDrive, Monitor, MemoryStick, Battery, Laptop, Usb, Scale, Box, Check, X, Shield, Layers, Timer, Zap, Maximize } from 'lucide-react';
 import { Product } from '@/lib/types';
 
 interface ProductDetailsProps {
@@ -19,6 +19,12 @@ const specIcons: { [key: string]: any } = {
     os: Laptop,
     ports: Usb,
     weight: Scale,
+    // Monitor-specific specs
+    panelType: Layers,
+    resolution: Maximize,
+    refreshRate: Zap,
+    responseTime: Timer,
+    displaySize: Monitor,
 };
 
 // Map spec keys to labels
@@ -32,6 +38,12 @@ const specLabels: { [key: string]: string } = {
     os: 'Operating System',
     ports: 'Ports',
     weight: 'Weight',
+    // Monitor-specific specs
+    panelType: 'Panel Type',
+    resolution: 'Resolution',
+    refreshRate: 'Refresh Rate',
+    responseTime: 'Response Time',
+    displaySize: 'Display Size',
 };
 
 export default function ProductDetails({ product }: ProductDetailsProps) {
@@ -101,7 +113,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
             </motion.div>
 
-            {/* Specs Grid - Fixed Order */}
+            {/* Specs Grid - Dynamic based on productType */}
             {displaySpecs.length > 0 && (
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -109,32 +121,53 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                     transition={{ delay: 0.5, duration: 0.4 }}
                     className="grid grid-cols-2 gap-4"
                 >
-                    {/* Fixed order: processor, screen, ram, storage, graphics, os, ports, battery */}
-                    {['processor', 'screen', 'ram', 'storage', 'graphics', 'os', 'ports', 'battery'].map((key, index) => {
-                        const value = product.specs?.[key as keyof typeof product.specs];
-                        if (!value) return null;
+                    {(() => {
+                        // Determine which keys to render based on product type
+                        const monitorKeys = ['displaySize', 'resolution', 'panelType', 'refreshRate', 'responseTime', 'ports', 'weight'];
+                        const defaultKeys = ['processor', 'screen', 'ram', 'storage', 'graphics', 'os', 'ports', 'battery'];
+                        const renderKeys = product.productType === 'monitor' ? monitorKeys : defaultKeys;
 
-                        const Icon = specIcons[key] || Laptop;
-                        const label = specLabels[key] || key.charAt(0).toUpperCase() + key.slice(1);
+                        // Helper to get value, with fallback to legacy keys for monitors
+                        const getSpecValue = (key: string) => {
+                            if (product.productType === 'monitor') {
+                                switch(key) {
+                                    case 'displaySize': return product.specs?.displaySize || product.specs?.processor;
+                                    case 'resolution': return product.specs?.resolution || product.specs?.ram;
+                                    case 'panelType': return product.specs?.panelType || product.specs?.storage;
+                                    case 'refreshRate': return product.specs?.refreshRate || product.specs?.screen;
+                                    case 'responseTime': return product.specs?.responseTime || product.specs?.graphics;
+                                    default: return product.specs?.[key as keyof typeof product.specs];
+                                }
+                            }
+                            return product.specs?.[key as keyof typeof product.specs];
+                        };
 
-                        return (
-                            <motion.div
-                                key={key}
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.5 + index * 0.05, duration: 0.4 }}
-                                className="glass rounded-xl p-4 border border-gray-200/50"
-                            >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-8 h-8 rounded-lg gradient-cyan-blue flex items-center justify-center">
-                                        <Icon size={16} className="text-white" />
+                        return renderKeys.map((key, index) => {
+                            const value = getSpecValue(key);
+                            if (!value) return null;
+
+                            const Icon = specIcons[key] || Laptop;
+                            const label = specLabels[key] || key.charAt(0).toUpperCase() + key.slice(1);
+
+                            return (
+                                <motion.div
+                                    key={key}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.5 + index * 0.05, duration: 0.4 }}
+                                    className="glass rounded-xl p-4 border border-gray-200/50"
+                                >
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-8 h-8 rounded-lg gradient-cyan-blue flex items-center justify-center">
+                                            <Icon size={16} className="text-white" />
+                                        </div>
+                                        <span className="text-sm font-medium text-text-muted">{label}</span>
                                     </div>
-                                    <span className="text-sm font-medium text-text-muted">{label}</span>
-                                </div>
-                                <p className="text-foreground font-semibold break-words">{value}</p>
-                            </motion.div>
-                        );
-                    })}
+                                    <p className="text-foreground font-semibold break-words">{value}</p>
+                                </motion.div>
+                            );
+                        });
+                    })()}
                 </motion.div>
             )}
 
