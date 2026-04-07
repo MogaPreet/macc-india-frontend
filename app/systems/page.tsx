@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SlidersHorizontal, X, ChevronLeft, ChevronRight, Cpu, HardDrive, MemoryStick } from 'lucide-react';
+import { Search, SlidersHorizontal, X, Cpu, HardDrive, MemoryStick } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getProductsByType, getBrands } from '@/lib/firebase-services';
@@ -57,7 +57,9 @@ export default function SystemsPage() {
     const [selectedRAM, setSelectedRAM] = useState<string[]>([]);
     const [selectedProcessors, setSelectedProcessors] = useState<string[]>([]);
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 200000]);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const observerRef = useRef<IntersectionObserver | null>(null);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
     // Get max price from products
@@ -94,7 +96,15 @@ export default function SystemsPage() {
                     getProductsByType('system'),
                     getBrands()
                 ]);
-                setProducts(productsData);
+
+                // Randomize products to show various products every time (Fisher-Yates shuffle)
+                const shuffledProducts = [...productsData];
+                for (let i = shuffledProducts.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffledProducts[i], shuffledProducts[j]] = [shuffledProducts[j], shuffledProducts[i]];
+                }
+
+                setProducts(shuffledProducts);
                 setBrands(brandsData);
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -127,15 +137,29 @@ export default function SystemsPage() {
         });
     }, [products, searchQuery, selectedBrands, selectedRAM, selectedProcessors, priceRange]);
 
-    // Pagination
-    const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
-    const paginatedProducts = filteredProducts.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    );
+    // Infinite Scroll setup
+    const hasMore = visibleCount < filteredProducts.length;
+    const displayedProducts = filteredProducts.slice(0, visibleCount);
+
+    const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
+        if (loading || isLoadingMore) return;
+        if (observerRef.current) observerRef.current.disconnect();
+
+        observerRef.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore) {
+                setIsLoadingMore(true);
+                setTimeout(() => {
+                    setVisibleCount(prev => prev + ITEMS_PER_PAGE);
+                    setIsLoadingMore(false);
+                }, 800);
+            }
+        });
+
+        if (node) observerRef.current.observe(node);
+    }, [loading, isLoadingMore, hasMore]);
 
     const handleFilterChange = () => {
-        setCurrentPage(1);
+        setVisibleCount(ITEMS_PER_PAGE);
     };
 
     const toggleBrand = (brand: string) => {
@@ -165,7 +189,7 @@ export default function SystemsPage() {
         setSelectedRAM([]);
         setSelectedProcessors([]);
         setPriceRange([0, maxPrice]);
-        setCurrentPage(1);
+        setVisibleCount(ITEMS_PER_PAGE);
     };
 
     const hasActiveFilters = searchQuery || selectedBrands.length > 0 || selectedRAM.length > 0 || selectedProcessors.length > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice;
@@ -186,54 +210,69 @@ export default function SystemsPage() {
             {/* Brand Filter */}
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">Brand</h3>
-                <div className="space-y-2">
-                    {brands.map(brand => (
-                        <label key={brand.id} className="flex items-center gap-3 cursor-pointer group">
-                            <input
-                                type="checkbox"
-                                checked={selectedBrands.includes(brand.name)}
-                                onChange={() => toggleBrand(brand.name)}
-                                className="w-4 h-4 rounded border-gray-300 bg-white text-cyan-600 focus:ring-cyan-500 focus:ring-offset-0"
-                            />
-                            <span className="text-gray-600 group-hover:text-gray-900 transition-colors">{brand.name}</span>
-                        </label>
-                    ))}
+                <div className="flex flex-wrap gap-2">
+                    {brands.map(brand => {
+                        const isSelected = selectedBrands.includes(brand.name);
+                        return (
+                            <button
+                                key={brand.id}
+                                onClick={() => toggleBrand(brand.name)}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
+                                    isSelected
+                                        ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
+                                        : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
+                                }`}
+                            >
+                                {brand.name}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* RAM Filter */}
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">RAM</h3>
-                <div className="space-y-2">
-                    {ramOptions.map(ram => (
-                        <label key={ram} className="flex items-center gap-3 cursor-pointer group">
-                            <input
-                                type="checkbox"
-                                checked={selectedRAM.includes(ram)}
-                                onChange={() => toggleRAM(ram)}
-                                className="w-4 h-4 rounded border-gray-300 bg-white text-cyan-600 focus:ring-cyan-500 focus:ring-offset-0"
-                            />
-                            <span className="text-gray-600 group-hover:text-gray-900 transition-colors">{ram}</span>
-                        </label>
-                    ))}
+                <div className="flex flex-wrap gap-2">
+                    {ramOptions.map(ram => {
+                        const isSelected = selectedRAM.includes(ram);
+                        return (
+                            <button
+                                key={ram}
+                                onClick={() => toggleRAM(ram)}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
+                                    isSelected
+                                        ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
+                                        : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
+                                }`}
+                            >
+                                {ram}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* Processor Filter */}
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">Processor</h3>
-                <div className="space-y-2">
-                    {processorOptions.map(processor => (
-                        <label key={processor} className="flex items-center gap-3 cursor-pointer group">
-                            <input
-                                type="checkbox"
-                                checked={selectedProcessors.includes(processor)}
-                                onChange={() => toggleProcessor(processor)}
-                                className="w-4 h-4 rounded border-gray-300 bg-white text-cyan-600 focus:ring-cyan-500 focus:ring-offset-0"
-                            />
-                            <span className="text-gray-600 group-hover:text-gray-900 transition-colors">{processor}</span>
-                        </label>
-                    ))}
+                <div className="flex flex-wrap gap-2">
+                    {processorOptions.map(processor => {
+                        const isSelected = selectedProcessors.includes(processor);
+                        return (
+                            <button
+                                key={processor}
+                                onClick={() => toggleProcessor(processor)}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
+                                    isSelected
+                                        ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
+                                        : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
+                                }`}
+                            >
+                                {processor}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
@@ -344,9 +383,9 @@ export default function SystemsPage() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2, duration: 0.5 }}
-                        className="hidden lg:block w-64 flex-shrink-0"
+                        className="hidden lg:block w-64 flex-shrink-0 self-start sticky top-24"
                     >
-                        <div className="sticky top-24 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm max-h-[calc(100vh-7rem)] overflow-y-auto">
                             <div className="flex items-center gap-2 mb-6">
                                 <SlidersHorizontal size={18} className="text-teal-600" />
                                 <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
@@ -383,7 +422,7 @@ export default function SystemsPage() {
                                     animate={{ x: 0 }}
                                     exit={{ x: '-100%' }}
                                     transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                                    className="lg:hidden fixed left-0 top-0 bottom-0 w-80 bg-white border-r border-gray-200 z-50 p-6 overflow-y-auto"
+                                    className="lg:hidden fixed left-0 top-0 bottom-0 w-80 bg-white border-r border-gray-200 z-50 p-6 flex flex-col"
                                 >
                                     <div className="flex items-center justify-between mb-6">
                                         <h2 className="text-xl font-bold text-gray-900">Filters</h2>
@@ -394,15 +433,25 @@ export default function SystemsPage() {
                                             <X size={24} />
                                         </button>
                                     </div>
-                                    <FilterSidebar />
+                                    <div className="flex-1 overflow-y-auto">
+                                        <FilterSidebar />
+                                    </div>
+                                    <div className="mt-6 pt-6 border-t border-gray-200">
+                                        <button
+                                            onClick={() => setShowMobileFilters(false)}
+                                            className="w-full py-3 bg-gradient-to-r from-teal-500 to-emerald-600 text-white rounded-xl font-bold shadow-md shadow-teal-500/20 active:scale-95 transition-all text-center"
+                                        >
+                                            Show {filteredProducts.length} Results
+                                        </button>
+                                    </div>
                                 </motion.div>
                             </>
                         )}
                     </AnimatePresence>
 
                     {/* Products Grid */}
-                    <div className="flex-1 min-w-0">
-                        {paginatedProducts.length > 0 ? (
+                    <div className="flex-1 min-w-0 pb-20">
+                        {displayedProducts.length > 0 ? (
                             <>
                                 <motion.div
                                     initial={{ opacity: 0 }}
@@ -410,7 +459,7 @@ export default function SystemsPage() {
                                     transition={{ delay: 0.3, duration: 0.5 }}
                                     className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 w-full"
                                 >
-                                    {paginatedProducts.map((product, index) => (
+                                    {displayedProducts.map((product, index) => (
                                         <motion.div
                                             key={product.id}
                                             initial={{ opacity: 0, y: 20 }}
@@ -495,43 +544,28 @@ export default function SystemsPage() {
                                     ))}
                                 </motion.div>
 
-                                {/* Pagination */}
-                                {totalPages > 1 && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.4, duration: 0.5 }}
-                                        className="flex items-center justify-center gap-2 mt-12"
+                                {/* Infinite Scroll Loader Target */}
+                                {hasMore && (
+                                    <div 
+                                        ref={loadMoreRef} 
+                                        className="mt-12 flex flex-col items-center justify-center p-6 space-y-4"
                                     >
-                                        <button
-                                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                            disabled={currentPage === 1}
-                                            className="p-2 rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-gray-900 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                        >
-                                            <ChevronLeft size={20} />
-                                        </button>
-
-                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                            <button
-                                                key={page}
-                                                onClick={() => setCurrentPage(page)}
-                                                className={`w-10 h-10 rounded-lg font-medium transition-all ${currentPage === page
-                                                    ? 'bg-gradient-to-r from-teal-500 to-emerald-600 text-white'
-                                                    : 'bg-white border border-gray-200 text-gray-600 hover:text-gray-900 hover:border-gray-300'
-                                                    }`}
-                                            >
-                                                {page}
-                                            </button>
-                                        ))}
-
-                                        <button
-                                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                            disabled={currentPage === totalPages}
-                                            className="p-2 rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-gray-900 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                        >
-                                            <ChevronRight size={20} />
-                                        </button>
-                                    </motion.div>
+                                        <AnimatePresence>
+                                            {isLoadingMore && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    className="flex flex-col items-center"
+                                                >
+                                                    <div className="w-8 h-8 border-4 border-teal-100 border-t-teal-500 rounded-full animate-spin mb-3"></div>
+                                                    <span className="text-sm font-medium text-gray-500 bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent animate-pulse">
+                                                        Discovering powerful systems...
+                                                    </span>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
                                 )}
                             </>
                         ) : (

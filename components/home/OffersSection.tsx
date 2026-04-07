@@ -196,7 +196,7 @@ export default function OffersSection() {
                     className="text-center mt-12"
                 >
                     <Link
-                        href="/#products"
+                        href="/products"
                         className="inline-flex items-center gap-2 text-white border border-gray-600 hover:border-accent-cyan hover:text-accent-cyan px-8 py-3 rounded-full font-medium transition-colors"
                     >
                         View All Deals

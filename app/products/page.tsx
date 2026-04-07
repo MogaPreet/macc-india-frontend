@@ -97,7 +97,15 @@ export default function ProductsPage() {
                     getProducts(),
                     getBrands()
                 ]);
-                setProducts(productsData);
+
+                // Randomize products to show various products every time (Fisher-Yates shuffle)
+                const shuffledProducts = [...productsData];
+                for (let i = shuffledProducts.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffledProducts[i], shuffledProducts[j]] = [shuffledProducts[j], shuffledProducts[i]];
+                }
+
+                setProducts(shuffledProducts);
                 setBrands(brandsData);
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -379,9 +387,9 @@ export default function ProductsPage() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2, duration: 0.5 }}
-                        className="hidden lg:block w-64 flex-shrink-0"
+                        className="hidden lg:block w-64 flex-shrink-0 self-start sticky top-24"
                     >
-                        <div className="sticky top-24 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm max-h-[calc(100vh-7rem)] overflow-y-auto">
                             <div className="flex items-center gap-2 mb-6">
                                 <SlidersHorizontal size={18} className="text-cyan-600" />
                                 <h2 className="text-lg font-semibold text-gray-900">Filters</h2>

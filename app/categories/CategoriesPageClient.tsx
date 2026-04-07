@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowUpRight, Sparkles, ChevronDown, Layers, Search } from 'lucide-react';
+import { ArrowUpRight, Sparkles, ChevronDown, Layers } from 'lucide-react';
 import { getCategories } from '@/lib/firebase-services';
 import { Category } from '@/lib/types';
 
@@ -39,7 +39,6 @@ export default function CategoriesPageClient() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [hoveredId, setHoveredId] = useState<string | null>(null);
-    const [search, setSearch] = useState('');
     const heroRef = useRef<HTMLDivElement>(null);
     const { scrollY } = useScroll();
     const heroOpacity = useTransform(scrollY, [0, 300], [1, 0]);
@@ -51,13 +50,9 @@ export default function CategoriesPageClient() {
             .finally(() => setLoading(false));
     }, []);
 
-    const filtered = categories.filter(c =>
-        c.name.toLowerCase().includes(search.toLowerCase())
-    );
-
     // Identify the gamer/hero category for the large spotlight card
     const heroCategory = categories.find(c => c.slug.includes('gamer') || c.slug.includes('gaming')) || categories[0];
-    const gridCategories = filtered.filter(c => c.id !== heroCategory?.id);
+    const gridCategories = categories.filter(c => c.id !== heroCategory?.id);
 
     if (loading) {
         return (
@@ -112,7 +107,7 @@ export default function CategoriesPageClient() {
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.7 }}
-                        className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none mb-6"
+                        className="text-3xl sm:text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none mb-6"
                     >
                         Shop By{' '}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500">
@@ -128,36 +123,6 @@ export default function CategoriesPageClient() {
                     >
                         Every laptop matched to your lifestyle. Find the perfect refurbished device built for how you work, create, and play.
                     </motion.p>
-
-                    {/* Search input */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.45 }}
-                        className="relative max-w-md mx-auto"
-                    >
-                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Search categories…"
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            className="w-full bg-white/10 backdrop-blur-xl border border-white/20 text-white placeholder-gray-500 px-10 py-3.5 rounded-full text-sm focus:outline-none focus:border-cyan-500/60 focus:bg-white/15 transition-all"
-                        />
-                        <AnimatePresence>
-                            {search && (
-                                <motion.button
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.8 }}
-                                    onClick={() => setSearch('')}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                                >
-                                    ✕
-                                </motion.button>
-                            )}
-                        </AnimatePresence>
-                    </motion.div>
 
                     {/* Scroll hint */}
                     <motion.div
@@ -178,40 +143,22 @@ export default function CategoriesPageClient() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="flex items-center justify-between mb-10"
+                    className="flex items-center gap-3 mb-10"
                 >
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white/5 border border-white/10 rounded-xl">
-                            <Layers size={16} className="text-cyan-400" />
-                        </div>
-                        <span className="text-gray-400 text-sm">
-                            {search
-                                ? `${filtered.length} result${filtered.length !== 1 ? 's' : ''} for "${search}"`
-                                : `${categories.length} categories available`}
-                        </span>
+                    <div className="p-2 bg-white/5 border border-white/10 rounded-xl">
+                        <Layers size={16} className="text-cyan-400" />
                     </div>
+                    <span className="text-gray-400 text-sm">
+                        {categories.length} categories available
+                    </span>
                 </motion.div>
 
-                {/* Empty search state */}
-                <AnimatePresence>
-                    {filtered.length === 0 && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="text-center py-24"
-                        >
-                            <div className="text-5xl mb-4">🔍</div>
-                            <h3 className="text-white text-xl font-bold mb-2">No categories found</h3>
-                            <p className="text-gray-500">Try a different search term.</p>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
 
-                {filtered.length > 0 && (
+
+                {categories.length > 0 && (
                     <>
                         {/* ── Spotlight Hero Card ── */}
-                        {heroCategory && filtered.some(c => c.id === heroCategory.id) && !search && (
+                        {heroCategory && (
                             <motion.div
                                 initial={{ opacity: 0, y: 40 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -270,7 +217,7 @@ export default function CategoriesPageClient() {
 
                         {/* ── Category Grid ── */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                            {(search ? filtered : gridCategories).map((category, idx) => {
+                            {gridCategories.map((category, idx) => {
                                 const accent = getAccent(category.slug);
                                 const mediaUrl = category.gifUrl || getFallback(category.slug);
 

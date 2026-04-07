@@ -132,14 +132,14 @@ export default function HeroSection() {
                             className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10"
                         >
                             <Link
-                                href="/#products"
+                                href="/rentals"
                                 className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40"
                             >
-                                Explore Collection
+                                Rent Now
                                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                             </Link>
                             <Link
-                                href="/#categories"
+                                href="/categories"
                                 className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/20 transition-all"
                             >
                                 Browse Categories

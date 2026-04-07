@@ -152,7 +152,7 @@ export default function PromoBanner() {
                     className="text-center mt-10"
                 >
                     <Link
-                        href="/#products"
+                        href="/products"
                         className="inline-flex items-center gap-2 text-white border border-white/30 hover:border-amber-400 hover:text-amber-400 px-6 py-3 rounded-full font-medium transition-all backdrop-blur-sm"
                     >
                         View All Products
