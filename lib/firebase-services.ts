@@ -12,7 +12,7 @@ import {
     Timestamp,
     serverTimestamp
 } from 'firebase/firestore';
-import { Product, Category, Brand, Testimonial, ProductRequest, PromoOffer } from './types';
+import { Product, Category, Brand, Testimonial, ProductRequest, PromoOffer, Accessory } from './types';
 
 // Helper to convert Firestore timestamp to Date
 const convertTimestamp = (timestamp: Timestamp | undefined): Date => {
@@ -56,6 +56,43 @@ const docToProduct = (doc: any): Product => {
         productType: data.productType || 'laptop',
         createdAt: convertTimestamp(data.createdAt),
         updatedAt: convertTimestamp(data.updatedAt),
+        updatedAt: convertTimestamp(data.updatedAt),
+    };
+};
+
+// Helper to convert Firestore document to Accessory type
+const docToAccessory = (doc: any): Accessory => {
+    const data = doc.data();
+
+    const categoryIds = data.categoryIds
+        ? data.categoryIds
+        : (data.categoryId ? [data.categoryId] : []);
+    const categoryNames = data.categoryNames
+        ? data.categoryNames
+        : (data.categoryName ? [data.categoryName] : []);
+
+    return {
+        id: doc.id,
+        name: data.name || '',
+        slug: data.slug || doc.id,
+        description: data.description,
+        brandId: data.brandId || '',
+        brandName: data.brandName || '',
+        categoryIds,
+        categoryNames,
+        accessoryType: data.accessoryType || 'other',
+        price: data.price || 0,
+        originalPrice: data.originalPrice,
+        condition: data.condition || 'New',
+        stock: data.stock || 0,
+        isFeatured: data.isFeatured || false,
+        isActive: data.isActive !== false,
+        images: data.images || [],
+        youtubeUrl: data.youtubeUrl,
+        specs: data.specs || {},
+        warranty: data.warranty,
+        createdAt: convertTimestamp(data.createdAt),
+        updatedAt: convertTimestamp(data.updatedAt),
     };
 };
 
@@ -96,6 +133,59 @@ export async function getProductsByType(type: string): Promise<Product[]> {
     }
 }
 
+// ============ ACCESSORIES ============
+
+export async function getAccessories(): Promise<Accessory[]> {
+    try {
+        const accessoriesRef = collection(db, 'accessories');
+        const q = query(
+            accessoriesRef,
+            where('isActive', '==', true),
+            orderBy('createdAt', 'desc')
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(docToAccessory);
+    } catch (error) {
+        console.error('Error fetching accessories:', error);
+        return [];
+    }
+}
+
+export async function getAccessoriesByType(type: string): Promise<Accessory[]> {
+    try {
+        const accessoriesRef = collection(db, 'accessories');
+        const q = query(
+            accessoriesRef,
+            where('isActive', '==', true),
+            where('accessoryType', '==', type),
+            orderBy('createdAt', 'desc')
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(docToAccessory);
+    } catch (error) {
+        console.error(`Error fetching ${type} accessories:`, error);
+        return [];
+    }
+}
+
+export async function getFeaturedAccessories(limitCount: number = 4): Promise<Accessory[]> {
+    try {
+        const accessoriesRef = collection(db, 'accessories');
+        const q = query(
+            accessoriesRef,
+            where('isActive', '==', true),
+            where('isFeatured', '==', true),
+            orderBy('createdAt', 'desc'),
+            limit(limitCount)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(docToAccessory);
+    } catch (error) {
+        console.error('Error fetching featured accessories:', error);
+        return [];
+    }
+}
+
 export async function getFeaturedProducts(limitCount: number = 4): Promise<Product[]> {
     try {
         const productsRef = collection(db, 'products');
@@ -125,11 +215,30 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
         );
         const snapshot = await getDocs(q);
 
-        if (snapshot.empty) {
-            return null;
+        if (!snapshot.empty) {
+            return docToProduct(snapshot.docs[0]);
         }
 
-        return docToProduct(snapshot.docs[0]);
+        // Fallback: Check if it's an accessory since they share the /product/[slug] route
+        const accessoriesRef = collection(db, 'accessories');
+        const qAcc = query(
+            accessoriesRef,
+            where('slug', '==', slug),
+            where('isActive', '==', true),
+            limit(1)
+        );
+        const accSnapshot = await getDocs(qAcc);
+
+        if (!accSnapshot.empty) {
+            const accessory = docToAccessory(accSnapshot.docs[0]);
+            // Format accessory as product for frontend compatibility
+            return {
+                ...accessory,
+                productType: accessory.accessoryType as any
+            } as unknown as Product;
+        }
+
+        return null;
     } catch (error) {
         console.error('Error fetching product by slug:', error);
         return null;

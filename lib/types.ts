@@ -16,6 +16,17 @@ export interface ProductSpecs {
     refreshRate?: string;
     responseTime?: string;
     displaySize?: string;
+    // Phone/iPad-specific specs
+    screenSize?: string;
+    camera?: string;
+    chipset?: string;
+    simType?: string;
+    connectivity?: string;
+    waterResistance?: string;
+    biometrics?: string;
+    colorOptions?: string;
+    pencilSupport?: string;
+    keyboardSupport?: string;
     [key: string]: string | undefined; // Allow additional custom specs
 }
 
@@ -51,7 +62,7 @@ export interface Product {
     specs: ProductSpecs;
     includedItems?: IncludedItem[];
     warranty?: Warranty;
-    productType?: string; // 'laptop' | 'monitor' | 'system'
+    productType?: 'laptop' | 'monitor' | 'system' | 'phone' | 'ipad';
     createdAt: Date;
     updatedAt: Date;
 }
@@ -123,4 +134,100 @@ export interface PromoOffer {
     endDate?: Date;
     isActive: boolean;
     createdAt: Date;
+}
+
+// ============ Accessories (Separate Collection) ============
+
+export interface AccessorySpecs {
+    // Keyboard
+    layout?: string;
+    switchType?: string;
+    backlight?: string;
+    keyCount?: string;
+    // Mouse
+    dpi?: string;
+    sensorType?: string;
+    buttons?: string;
+    // Graphic Card
+    gpuChipset?: string;
+    vram?: string;
+    clockSpeed?: string;
+    memoryBus?: string;
+    powerRequirement?: string;
+    cooling?: string;
+    cardLength?: string;
+    // Charger
+    wattage?: string;
+    outputPorts?: string;
+    fastCharging?: string;
+    cableIncluded?: string;
+    // Cable
+    cableType?: string;
+    cableLength?: string;
+    dataTransfer?: string;
+    powerDelivery?: string;
+    // Case/Cover
+    deviceCompatibility?: string;
+    features?: string;
+    // Stand/Mount
+    standType?: string;
+    adjustable?: string;
+    weightCapacity?: string;
+    // Hub/Dock
+    inputPort?: string;
+    hubOutputPorts?: string;
+    powerPassthrough?: string;
+    // Audio
+    audioType?: string;
+    driverSize?: string;
+    noiseCancellation?: string;
+    batteryLife?: string;
+    // Shared
+    connectivity?: string;
+    compatibility?: string;
+    material?: string;
+    color?: string;
+    dimensions?: string;
+    weight?: string;
+    ports?: string;
+    // Other
+    category?: string;
+    keyFeature?: string;
+    [key: string]: string | undefined;
+}
+
+export type AccessoryType =
+    | 'keyboard'
+    | 'mouse'
+    | 'graphic_card'
+    | 'charger'
+    | 'cable'
+    | 'case_cover'
+    | 'stand'
+    | 'hub'
+    | 'audio'
+    | 'other';
+
+export interface Accessory {
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
+    brandId: string;
+    brandName: string;
+    categoryIds: string[];
+    categoryNames: string[];
+    accessoryType: AccessoryType;
+    price: number;
+    originalPrice?: number;
+    condition: string;
+    stock: number;
+    isFeatured: boolean;
+    isActive: boolean;
+    images: string[];
+    specs: AccessorySpecs;
+    warranty?: Warranty;
+    youtubeUrl?: string;
+    createdAt: Date;
+    updatedAt: Date;
 }

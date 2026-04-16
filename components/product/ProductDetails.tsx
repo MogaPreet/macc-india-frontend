@@ -1,7 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Cpu, HardDrive, Monitor, MemoryStick, Battery, Laptop, Usb, Scale, Box, Check, X, Shield, Layers, Timer, Zap, Maximize } from 'lucide-react';
+import Link from 'next/link';
+import { Cpu, HardDrive, Monitor, MemoryStick, Battery, Laptop, Usb, Scale, Box, Check, X, Shield, Layers, Timer, Zap, Maximize, ArrowRight } from 'lucide-react';
 import { Product } from '@/lib/types';
 
 interface ProductDetailsProps {
@@ -63,18 +64,6 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             >
                 {product.name}
             </motion.h1>
-
-            {/* Description */}
-            {product.description && (
-                <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25, duration: 0.4 }}
-                    className="text-text-secondary -mt-2"
-                >
-                    {product.description}
-                </motion.p>
-            )}
 
             {/* Price Section */}
             <motion.div
@@ -203,34 +192,39 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 </motion.div>
             )}
 
-            {/* Warranty Section */}
-            {product.warranty && (
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8, duration: 0.4 }}
-                    className="glass rounded-xl p-5 border border-accent-cyan/20 bg-accent-cyan/5"
-                >
-                    <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl gradient-cyan-blue flex items-center justify-center flex-shrink-0">
-                            <Shield size={24} className="text-white" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-semibold text-foreground mb-1">
-                                {product.warranty.type || 'Warranty'}
-                            </h3>
-                            <p className="text-accent-cyan font-medium mb-1">
-                                {product.warranty.duration}
-                            </p>
-                            {product.warranty.description && (
-                                <p className="text-sm text-text-muted">
-                                    {product.warranty.description}
-                                </p>
-                            )}
+            {/* Warranty Section Button */}
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.4 }}
+                className="pt-2"
+            >
+                <Link href="/warranty" className="block group">
+                    <div className="relative overflow-hidden rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-50/80 to-blue-50/80 p-5 transition-all duration-500 hover:border-cyan-500/40 hover:shadow-xl hover:shadow-cyan-500/10 hover:-translate-y-0.5">
+                        {/* Shimmer effect */}
+                        <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/80 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_1.5s_infinite] transition-opacity duration-300 pointer-events-none"></div>
+                        
+                        <div className="relative flex items-center justify-between z-10">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-white shadow-sm border border-cyan-100 flex items-center justify-center group-hover:scale-110 group-hover:shadow-cyan-500/20 transition-all duration-500">
+                                    <Shield size={24} className="text-cyan-500" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-extrabold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent mb-0.5">
+                                        MACC INDIA WARRANTY
+                                    </h3>
+                                    <p className="text-sm font-medium text-gray-500">
+                                        View our comprehensive protection plan
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="w-10 h-10 rounded-full bg-white shadow-sm border border-cyan-100 flex items-center justify-center group-hover:bg-gradient-to-r group-hover:from-cyan-500 group-hover:to-blue-500 group-hover:border-transparent group-hover:translate-x-1 group-hover:shadow-md transition-all duration-300">
+                                <ArrowRight size={20} className="text-cyan-600 group-hover:text-white transition-colors duration-300" />
+                            </div>
                         </div>
                     </div>
-                </motion.div>
-            )}
+                </Link>
+            </motion.div>
         </div>
     );
 }

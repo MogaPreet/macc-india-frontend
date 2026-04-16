@@ -4,14 +4,20 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Phone, Sparkles } from 'lucide-react';
+import { Menu, X, Phone, Sparkles, ChevronDown } from 'lucide-react';
 
 const navLinks = [
     { name: 'Laptops', href: '/products' },
-    { name: 'Systems', href: '/systems' },
-    { name: 'Monitors', href: '/monitors' },
-    { name: 'Categories', href: '/categories' },
-    { name: 'Rentals', href: '/rentals' },
+    { 
+        name: 'Systems', 
+        href: '/systems',
+        dropdown: [
+            { name: 'LED Monitors', href: '/monitors' },
+            { name: 'CPUs & Desktops', href: '/systems' }
+        ]
+    },
+    { name: 'Tablet', href: '/tablet', tag: 'New' },
+    { name: 'Accessories', href: '/accessories', tag: 'New' }
 ];
 
 export default function Navbar() {
@@ -106,14 +112,37 @@ export default function Navbar() {
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center gap-1">
                         {navLinks.map((link) => (
-                            <Link
-                                key={link.name}
-                                href={link.href}
-                                className="relative px-4 py-2 text-gray-400 hover:text-white transition-colors duration-200 font-medium group"
-                            >
-                                {link.name}
-                                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 group-hover:w-full transition-all duration-300 rounded-full"></span>
-                            </Link>
+                            <div key={link.name} className="relative group/navItem">
+                                <Link
+                                    href={link.href}
+                                    className="relative flex items-center gap-1.5 px-4 py-2 text-gray-400 hover:text-white transition-colors duration-200 font-medium group"
+                                >
+                                    {link.name}
+                                    {link.dropdown && <ChevronDown size={14} className="opacity-50 group-hover:opacity-100 transition-opacity" />}
+                                    {link.tag && (
+                                        <span className="px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 text-[10px] font-bold uppercase tracking-wider border border-cyan-500/30">
+                                            {link.tag}
+                                        </span>
+                                    )}
+                                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 group-hover:w-full transition-all duration-300 rounded-full"></span>
+                                </Link>
+                                
+                                {link.dropdown && (
+                                    <div className="absolute top-full left-0 w-48 pt-2 opacity-0 invisible group-hover/navItem:opacity-100 group-hover/navItem:visible transition-all duration-200">
+                                        <div className="bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-xl shadow-black/40 overflow-hidden flex flex-col p-2">
+                                            {link.dropdown.map(drop => (
+                                                <Link 
+                                                    key={drop.name} 
+                                                    href={drop.href}
+                                                    className="px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                                                >
+                                                    {drop.name}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         ))}
                     </div>
 
@@ -122,13 +151,12 @@ export default function Navbar() {
                         {/* Special Offer Badge */}
 
 
-                        {/* Contact Button */}
+                        {/* Rentals Button */}
                         <Link
-                            href="/contact"
+                            href="/rentals"
                             className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-5 py-2.5 rounded-full font-medium transition-all shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40"
                         >
-                            <Phone size={16} />
-                            Contact Us
+                            Rentals
                         </Link>
                     </div>
 
@@ -163,10 +191,30 @@ export default function Navbar() {
                                     <Link
                                         href={link.href}
                                         onClick={() => setIsOpen(false)}
-                                        className="block py-3 px-4 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-all font-medium"
+                                        className="flex items-center gap-2 py-3 px-4 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-all font-medium"
                                     >
                                         {link.name}
+                                        {link.tag && (
+                                            <span className="px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 text-[10px] font-bold uppercase tracking-wider border border-cyan-500/30">
+                                                {link.tag}
+                                            </span>
+                                        )}
                                     </Link>
+                                    
+                                    {link.dropdown && (
+                                        <div className="pl-8 flex flex-col gap-1 mt-1">
+                                            {link.dropdown.map(drop => (
+                                                <Link
+                                                    key={drop.name}
+                                                    href={drop.href}
+                                                    onClick={() => setIsOpen(false)}
+                                                    className="py-2 px-4 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                                >
+                                                    {drop.name}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
                                 </motion.div>
                             ))}
 
@@ -177,12 +225,11 @@ export default function Navbar() {
                             </div>
 
                             <Link
-                                href="/contact"
+                                href="/rentals"
                                 onClick={() => setIsOpen(false)}
                                 className="flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-5 py-3.5 rounded-xl font-medium mt-4"
                             >
-                                <Phone size={16} />
-                                Contact Us
+                                Rentals
                             </Link>
                         </div>
                     </motion.div>

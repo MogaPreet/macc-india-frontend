@@ -100,7 +100,7 @@ export default function ProductImage({ images, alt, youtubeUrl }: ProductImagePr
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
-            className="lg:sticky lg:top-24 h-fit space-y-4"
+            className="space-y-4"
             onKeyDown={handleKeyDown}
             tabIndex={0}
         >
