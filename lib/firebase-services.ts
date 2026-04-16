@@ -56,7 +56,6 @@ const docToProduct = (doc: any): Product => {
         productType: data.productType || 'laptop',
         createdAt: convertTimestamp(data.createdAt),
         updatedAt: convertTimestamp(data.updatedAt),
-        updatedAt: convertTimestamp(data.updatedAt),
     };
 };
 
