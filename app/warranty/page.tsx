@@ -7,7 +7,7 @@ import Link from 'next/link';
 const warrantyPlans = [
     {
         name: 'Standard',
-        duration: '6 Months',
+        duration: '3 Months',
         price: 'Included',
         color: 'from-gray-500 to-gray-600',
         features: [
@@ -118,8 +118,8 @@ export default function WarrantyPage() {
 
                             <button
                                 className={`w-full py-3 rounded-xl font-semibold transition-all ${plan.popular
-                                        ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-400 hover:to-blue-500'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-400 hover:to-blue-500'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
                             >
                                 {plan.price === 'Included' ? 'Included with Purchase' : 'Add to Purchase'}
