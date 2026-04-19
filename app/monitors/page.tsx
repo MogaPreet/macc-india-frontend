@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, X, Monitor, Ratio, RefreshCw, Maximize2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getProductsByType, getBrands } from '@/lib/firebase-services';
-import { Product, Brand } from '@/lib/types';
+import { getProductsByType } from '@/lib/firebase-services';
+import { Product } from '@/lib/types';
+import { getBrandOptions } from '@/lib/filter-utils';
 import DualRangeSlider from '@/components/DualRangeSlider';
 
 
@@ -14,7 +15,6 @@ const ITEMS_PER_PAGE = 6;
 
 export default function MonitorsPage() {
     const [products, setProducts] = useState<Product[]>([]);
-    const [brands, setBrands] = useState<Brand[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
@@ -50,14 +50,13 @@ export default function MonitorsPage() {
         return [...new Set(panels)].sort();
     }, [products]);
 
-    // Fetch monitor products and brands from Firebase
+    const brandOptions = useMemo(() => getBrandOptions(products), [products]);
+
+    // Fetch monitor products from Firebase
     useEffect(() => {
         async function fetchData() {
             try {
-                const [productsData, brandsData] = await Promise.all([
-                    getProductsByType('monitor'),
-                    getBrands()
-                ]);
+                const productsData = await getProductsByType('monitor');
 
                 // Randomize products to show various products every time (Fisher-Yates shuffle)
                 const shuffledProducts = [...productsData];
@@ -67,7 +66,6 @@ export default function MonitorsPage() {
                 }
 
                 setProducts(shuffledProducts);
-                setBrands(brandsData);
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
@@ -170,30 +168,31 @@ export default function MonitorsPage() {
                 </button>
             )}
 
-            {/* Brand Filter */}
+            {brandOptions.length > 0 && (
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">Brand</h3>
                 <div className="flex flex-wrap gap-2">
-                    {brands.map(brand => {
-                        const isSelected = selectedBrands.includes(brand.name);
+                    {brandOptions.map(brand => {
+                        const isSelected = selectedBrands.includes(brand);
                         return (
                             <button
-                                key={brand.id}
-                                onClick={() => toggleBrand(brand.name)}
+                                key={brand}
+                                onClick={() => toggleBrand(brand)}
                                 className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
                                     isSelected
                                         ? 'bg-violet-50 border-violet-500 text-violet-700 shadow-sm'
                                         : 'bg-white border-gray-200 text-gray-600 hover:border-violet-300 hover:bg-violet-50/50'
                                 }`}
                             >
-                                {brand.name}
+                                {brand}
                             </button>
                         );
                     })}
                 </div>
             </div>
+            )}
 
-            {/* Resolution Filter */}
+            {resolutionOptions.length > 0 && (
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">Resolution</h3>
                 <div className="flex flex-wrap gap-2">
@@ -215,8 +214,9 @@ export default function MonitorsPage() {
                     })}
                 </div>
             </div>
+            )}
 
-            {/* Panel Type Filter */}
+            {panelTypeOptions.length > 0 && (
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">Panel Type</h3>
                 <div className="flex flex-wrap gap-2">
@@ -238,6 +238,7 @@ export default function MonitorsPage() {
                     })}
                 </div>
             </div>
+            )}
 
             {/* Price Range Slider */}
             <div>

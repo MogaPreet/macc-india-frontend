@@ -5,6 +5,7 @@ import ProductImage from '@/components/product/ProductImage';
 import ProductDetails from '@/components/product/ProductDetails';
 import InquiryForm from '@/components/product/InquiryForm';
 import SimilarProducts from '@/components/product/SimilarProducts';
+import { ProductDescription } from '@/components/ProductDescription';
 
 interface ProductPageClientProps {
     product: Product;
@@ -20,12 +21,10 @@ export default function ProductPageClient({ product }: ProductPageClientProps) {
                         <ProductImage images={product.images || []} alt={product.name} youtubeUrl={product.youtubeUrl} />
                         
                         {/* Description - Hidden on mobile, visible on desktop/tablet */}
-                        {product.description && (
+                        {product.description?.trim() && (
                             <div className="hidden md:block p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm">
                                 <h3 className="text-xl font-bold text-gray-900 mb-3">About this Product</h3>
-                                <p className="text-gray-600 leading-relaxed">
-                                    {product.description}
-                                </p>
+                                <ProductDescription description={product.description} />
                             </div>
                         )}
                     </div>

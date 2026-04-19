@@ -5,52 +5,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, X, ChevronLeft, ChevronRight, Cpu, HardDrive, Monitor, MemoryStick } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getProducts, getBrands } from '@/lib/firebase-services';
-import { Product, Brand } from '@/lib/types';
+import { getProducts } from '@/lib/firebase-services';
+import { Product } from '@/lib/types';
+import {
+    getBrandOptions,
+    getRAMOptions,
+    getProcessorOptions,
+    processorMatchesFamily,
+} from '@/lib/filter-utils';
 import DualRangeSlider from '@/components/DualRangeSlider';
 
 
 const ITEMS_PER_PAGE = 6;
 
-// Helper to extract processor family from full processor name
-const getProcessorFamily = (processor: string): string => {
-    const lower = processor.toLowerCase();
-    if (lower.includes('i9')) return 'Intel i9';
-    if (lower.includes('i7')) return 'Intel i7';
-    if (lower.includes('i5')) return 'Intel i5';
-    if (lower.includes('i3')) return 'Intel i3';
-    if (lower.includes('ryzen 9') || lower.includes('r9')) return 'Ryzen 9';
-    if (lower.includes('ryzen 7') || lower.includes('r7')) return 'Ryzen 7';
-    if (lower.includes('ryzen 5') || lower.includes('r5')) return 'Ryzen 5';
-    if (lower.includes('ryzen 3') || lower.includes('r3')) return 'Ryzen 3';
-    if (lower.includes('m1') || lower.includes('m2') || lower.includes('m3') || lower.includes('m4')) return 'Apple Silicon';
-    if (lower.includes('celeron')) return 'Intel Celeron';
-    if (lower.includes('pentium')) return 'Intel Pentium';
-    return 'Other';
-};
-
-// Helper to check if a processor matches a family
-const processorMatchesFamily = (processor: string, family: string): boolean => {
-    const lower = processor.toLowerCase();
-    const familyLower = family.toLowerCase();
-
-    if (familyLower.includes('i9')) return lower.includes('i9');
-    if (familyLower.includes('i7')) return lower.includes('i7');
-    if (familyLower.includes('i5')) return lower.includes('i5');
-    if (familyLower.includes('i3')) return lower.includes('i3');
-    if (familyLower.includes('ryzen 9')) return lower.includes('ryzen 9') || lower.includes('r9');
-    if (familyLower.includes('ryzen 7')) return lower.includes('ryzen 7') || lower.includes('r7');
-    if (familyLower.includes('ryzen 5')) return lower.includes('ryzen 5') || lower.includes('r5');
-    if (familyLower.includes('ryzen 3')) return lower.includes('ryzen 3') || lower.includes('r3');
-    if (familyLower.includes('apple')) return lower.includes('m1') || lower.includes('m2') || lower.includes('m3') || lower.includes('m4');
-    if (familyLower.includes('celeron')) return lower.includes('celeron');
-    if (familyLower.includes('pentium')) return lower.includes('pentium');
-    return false;
-};
-
 export default function ProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
-    const [brands, setBrands] = useState<Brand[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
@@ -75,28 +44,15 @@ export default function ProductsPage() {
         }
     }, [maxPrice, products.length]);
 
-    // Extract unique RAM and Processor options from products
-    const ramOptions = useMemo(() => {
-        const rams = products.map(p => p.specs?.ram).filter(Boolean) as string[];
-        // Extract only the first word (e.g., "08GB" from "08GB DDR4 RAM")
-        const ramShort = rams.map(r => r.split(' ')[0]);
-        return [...new Set(ramShort)].sort();
-    }, [products]);
+    const brandOptions = useMemo(() => getBrandOptions(products), [products]);
+    const ramOptions = useMemo(() => getRAMOptions(products), [products]);
+    const processorOptions = useMemo(() => getProcessorOptions(products), [products]);
 
-    const processorOptions = useMemo(() => {
-        const processors = products.map(p => p.specs?.processor).filter(Boolean) as string[];
-        const processorFamilies = processors.map(p => getProcessorFamily(p));
-        return [...new Set(processorFamilies)].filter(p => p !== 'Other').sort();
-    }, [products]);
-
-    // Fetch products and brands from Firebase
+    // Fetch products from Firebase
     useEffect(() => {
         async function fetchData() {
             try {
-                const [productsData, brandsData] = await Promise.all([
-                    getProducts(),
-                    getBrands()
-                ]);
+                const productsData = await getProducts();
 
                 // Randomize products to show various products every time (Fisher-Yates shuffle)
                 const shuffledProducts = [...productsData];
@@ -106,7 +62,6 @@ export default function ProductsPage() {
                 }
 
                 setProducts(shuffledProducts);
-                setBrands(brandsData);
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
@@ -211,30 +166,32 @@ export default function ProductsPage() {
                 </button>
             )}
 
-            {/* Brand Filter */}
+            {/* Brand Filter — only brands present in current listing */}
+            {brandOptions.length > 0 && (
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">Brand</h3>
                 <div className="flex flex-wrap gap-2">
-                    {brands.map(brand => {
-                        const isSelected = selectedBrands.includes(brand.name);
+                    {brandOptions.map(brand => {
+                        const isSelected = selectedBrands.includes(brand);
                         return (
                             <button
-                                key={brand.id}
-                                onClick={() => toggleBrand(brand.name)}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
-                                    isSelected
-                                        ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
-                                        : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
-                                }`}
+                                key={brand}
+                                onClick={() => toggleBrand(brand)}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${isSelected
+                                    ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
+                                    : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
+                                    }`}
                             >
-                                {brand.name}
+                                {brand}
                             </button>
                         );
                     })}
                 </div>
             </div>
+            )}
 
             {/* RAM Filter */}
+            {ramOptions.length > 0 && (
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">RAM</h3>
                 <div className="flex flex-wrap gap-2">
@@ -244,11 +201,10 @@ export default function ProductsPage() {
                             <button
                                 key={ram}
                                 onClick={() => toggleRAM(ram)}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
-                                    isSelected
-                                        ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
-                                        : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
-                                }`}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${isSelected
+                                    ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
+                                    : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
+                                    }`}
                             >
                                 {ram}
                             </button>
@@ -256,8 +212,10 @@ export default function ProductsPage() {
                     })}
                 </div>
             </div>
+            )}
 
             {/* Processor Filter */}
+            {processorOptions.length > 0 && (
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">Processor</h3>
                 <div className="flex flex-wrap gap-2">
@@ -267,11 +225,10 @@ export default function ProductsPage() {
                             <button
                                 key={processor}
                                 onClick={() => toggleProcessor(processor)}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
-                                    isSelected
-                                        ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
-                                        : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
-                                }`}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${isSelected
+                                    ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
+                                    : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
+                                    }`}
                             >
                                 {processor}
                             </button>
@@ -279,6 +236,7 @@ export default function ProductsPage() {
                     })}
                 </div>
             </div>
+            )}
 
             {/* Price Range Slider */}
             <div>
@@ -558,8 +516,8 @@ export default function ProductsPage() {
 
                                 {/* Infinite Scroll Loader Target */}
                                 {hasMore && (
-                                    <div 
-                                        ref={loadMoreRef} 
+                                    <div
+                                        ref={loadMoreRef}
                                         className="mt-12 flex flex-col items-center justify-center p-6 space-y-4"
                                     >
                                         <AnimatePresence>

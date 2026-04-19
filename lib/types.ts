@@ -42,6 +42,32 @@ export interface Warranty {
     description?: string;
 }
 
+/** One line item inside a sellable bundle (combos collection) */
+export interface ComboComponent {
+    productId: string;
+    quantity: number;
+    sortOrder: number;
+    productNameSnapshot: string | null;
+}
+
+/** Sellable bundle document from Firestore `combos` collection */
+export interface Combo {
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    components: ComboComponent[];
+    price: number;
+    originalPrice: number | null;
+    stock: number;
+    isActive: boolean;
+    isFeatured: boolean;
+    images: string[];
+    youtubeUrl: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
 export interface Product {
     id: string;
     name: string;

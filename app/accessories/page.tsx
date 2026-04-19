@@ -2,61 +2,29 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SlidersHorizontal, X, ChevronLeft, ChevronRight, Cpu, HardDrive, Monitor, MemoryStick } from 'lucide-react';
+import { Search, SlidersHorizontal, X, Package, Usb, Tag } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getAccessories, getBrands } from '@/lib/firebase-services';
-import { Accessory } from '@/lib/types';
-import { Brand } from '@/lib/types';
+import { getAccessories } from '@/lib/firebase-services';
+import { Accessory, AccessoryType } from '@/lib/types';
+import {
+    getBrandOptions,
+    getAccessoryTypeOptions,
+    formatAccessoryTypeLabel,
+    getUniqueSpecValues,
+} from '@/lib/filter-utils';
 import DualRangeSlider from '@/components/DualRangeSlider';
 
 
 const ITEMS_PER_PAGE = 6;
 
-// Helper to extract processor family from full processor name
-const getProcessorFamily = (processor: string): string => {
-    const lower = processor.toLowerCase();
-    if (lower.includes('i9')) return 'Intel i9';
-    if (lower.includes('i7')) return 'Intel i7';
-    if (lower.includes('i5')) return 'Intel i5';
-    if (lower.includes('i3')) return 'Intel i3';
-    if (lower.includes('ryzen 9') || lower.includes('r9')) return 'Ryzen 9';
-    if (lower.includes('ryzen 7') || lower.includes('r7')) return 'Ryzen 7';
-    if (lower.includes('ryzen 5') || lower.includes('r5')) return 'Ryzen 5';
-    if (lower.includes('ryzen 3') || lower.includes('r3')) return 'Ryzen 3';
-    if (lower.includes('m1') || lower.includes('m2') || lower.includes('m3') || lower.includes('m4')) return 'Apple Silicon';
-    if (lower.includes('celeron')) return 'Intel Celeron';
-    if (lower.includes('pentium')) return 'Intel Pentium';
-    return 'Other';
-};
-
-// Helper to check if a processor matches a family
-const processorMatchesFamily = (processor: string, family: string): boolean => {
-    const lower = processor.toLowerCase();
-    const familyLower = family.toLowerCase();
-
-    if (familyLower.includes('i9')) return lower.includes('i9');
-    if (familyLower.includes('i7')) return lower.includes('i7');
-    if (familyLower.includes('i5')) return lower.includes('i5');
-    if (familyLower.includes('i3')) return lower.includes('i3');
-    if (familyLower.includes('ryzen 9')) return lower.includes('ryzen 9') || lower.includes('r9');
-    if (familyLower.includes('ryzen 7')) return lower.includes('ryzen 7') || lower.includes('r7');
-    if (familyLower.includes('ryzen 5')) return lower.includes('ryzen 5') || lower.includes('r5');
-    if (familyLower.includes('ryzen 3')) return lower.includes('ryzen 3') || lower.includes('r3');
-    if (familyLower.includes('apple')) return lower.includes('m1') || lower.includes('m2') || lower.includes('m3') || lower.includes('m4');
-    if (familyLower.includes('celeron')) return lower.includes('celeron');
-    if (familyLower.includes('pentium')) return lower.includes('pentium');
-    return false;
-};
-
 export default function AccessoriesPage() {
     const [products, setProducts] = useState<Accessory[]>([]);
-    const [brands, setBrands] = useState<Brand[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-    const [selectedRAM, setSelectedRAM] = useState<string[]>([]);
-    const [selectedProcessors, setSelectedProcessors] = useState<string[]>([]);
+    const [selectedAccessoryTypes, setSelectedAccessoryTypes] = useState<AccessoryType[]>([]);
+    const [selectedConnectivity, setSelectedConnectivity] = useState<string[]>([]);
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 200000]);
     const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -76,30 +44,15 @@ export default function AccessoriesPage() {
         }
     }, [maxPrice, products.length]);
 
-    // Extract unique RAM and Processor options from products
-    const ramOptions = useMemo(() => {
-        const rams = products.map(p => p.specs?.ram).filter(Boolean) as string[];
-        // Extract only the first word (e.g., "08GB" from "08GB DDR4 RAM")
-        const ramShort = rams.map(r => r.split(' ')[0]);
-        return [...new Set(ramShort)].sort();
-    }, [products]);
+    const brandOptions = useMemo(() => getBrandOptions(products), [products]);
+    const accessoryTypeOptions = useMemo(() => getAccessoryTypeOptions(products), [products]);
+    const connectivityOptions = useMemo(() => getUniqueSpecValues(products, 'connectivity'), [products]);
 
-    const processorOptions = useMemo(() => {
-        const processors = products.map(p => p.specs?.processor).filter(Boolean) as string[];
-        const processorFamilies = processors.map(p => getProcessorFamily(p));
-        return [...new Set(processorFamilies)].filter(p => p !== 'Other').sort();
-    }, [products]);
-
-    // Fetch products and brands from Firebase
     useEffect(() => {
         async function fetchData() {
             try {
-                const [productsData, brandsData] = await Promise.all([
-                    getAccessories(),
-                    getBrands()
-                ]);
+                const productsData = await getAccessories();
 
-                // Randomize products to show various products every time (Fisher-Yates shuffle)
                 const shuffledProducts = [...productsData];
                 for (let i = shuffledProducts.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
@@ -107,7 +60,6 @@ export default function AccessoriesPage() {
                 }
 
                 setProducts(shuffledProducts);
-                setBrands(brandsData);
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
@@ -117,29 +69,33 @@ export default function AccessoriesPage() {
         fetchData();
     }, []);
 
-    // Filter products
     const filteredProducts = useMemo(() => {
+        const q = searchQuery.toLowerCase();
         return products.filter(product => {
+            const typeLabel = formatAccessoryTypeLabel(product.accessoryType);
             const matchesSearch = searchQuery === '' ||
-                product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                product.brandName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (product.specs?.processor?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+                product.name.toLowerCase().includes(q) ||
+                product.brandName.toLowerCase().includes(q) ||
+                typeLabel.toLowerCase().includes(q) ||
+                product.accessoryType.toLowerCase().includes(q) ||
+                (product.specs?.category?.toLowerCase().includes(q) ?? false) ||
+                (product.specs?.keyFeature?.toLowerCase().includes(q) ?? false) ||
+                (product.specs?.compatibility?.toLowerCase().includes(q) ?? false) ||
+                (product.specs?.connectivity?.toLowerCase().includes(q) ?? false);
 
             const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(product.brandName);
 
-            // Match RAM by checking if the full RAM starts with the selected short version
-            const matchesRAM = selectedRAM.length === 0 ||
-                (product.specs?.ram && selectedRAM.some(sr => product.specs?.ram?.startsWith(sr)));
+            const matchesType = selectedAccessoryTypes.length === 0 ||
+                selectedAccessoryTypes.includes(product.accessoryType);
 
-            // Match processor by checking if the processor belongs to the selected family
-            const matchesProcessor = selectedProcessors.length === 0 ||
-                (product.specs?.processor && selectedProcessors.some(family => processorMatchesFamily(product.specs!.processor!, family)));
+            const matchesConnectivity = selectedConnectivity.length === 0 ||
+                (product.specs?.connectivity && selectedConnectivity.includes(product.specs.connectivity));
 
             const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
 
-            return matchesSearch && matchesBrand && matchesRAM && matchesProcessor && matchesPrice;
+            return matchesSearch && matchesBrand && matchesType && matchesConnectivity && matchesPrice;
         });
-    }, [products, searchQuery, selectedBrands, selectedRAM, selectedProcessors, priceRange]);
+    }, [products, searchQuery, selectedBrands, selectedAccessoryTypes, selectedConnectivity, priceRange]);
 
     // Infinite Scroll setup
     const hasMore = visibleCount < filteredProducts.length;
@@ -174,16 +130,16 @@ export default function AccessoriesPage() {
         handleFilterChange();
     };
 
-    const toggleRAM = (ram: string) => {
-        setSelectedRAM(prev =>
-            prev.includes(ram) ? prev.filter(r => r !== ram) : [...prev, ram]
+    const toggleAccessoryType = (t: AccessoryType) => {
+        setSelectedAccessoryTypes(prev =>
+            prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]
         );
         handleFilterChange();
     };
 
-    const toggleProcessor = (processor: string) => {
-        setSelectedProcessors(prev =>
-            prev.includes(processor) ? prev.filter(p => p !== processor) : [...prev, processor]
+    const toggleConnectivity = (c: string) => {
+        setSelectedConnectivity(prev =>
+            prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
         );
         handleFilterChange();
     };
@@ -191,13 +147,13 @@ export default function AccessoriesPage() {
     const clearAllFilters = () => {
         setSearchQuery('');
         setSelectedBrands([]);
-        setSelectedRAM([]);
-        setSelectedProcessors([]);
+        setSelectedAccessoryTypes([]);
+        setSelectedConnectivity([]);
         setPriceRange([0, maxPrice]);
         setVisibleCount(ITEMS_PER_PAGE);
     };
 
-    const hasActiveFilters = searchQuery || selectedBrands.length > 0 || selectedRAM.length > 0 || selectedProcessors.length > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice;
+    const hasActiveFilters = searchQuery || selectedBrands.length > 0 || selectedAccessoryTypes.length > 0 || selectedConnectivity.length > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice;
 
     const FilterSidebar = () => (
         <div className="space-y-6">
@@ -212,74 +168,77 @@ export default function AccessoriesPage() {
                 </button>
             )}
 
-            {/* Brand Filter */}
+            {brandOptions.length > 0 && (
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">Brand</h3>
                 <div className="flex flex-wrap gap-2">
-                    {brands.map(brand => {
-                        const isSelected = selectedBrands.includes(brand.name);
+                    {brandOptions.map(brand => {
+                        const isSelected = selectedBrands.includes(brand);
                         return (
                             <button
-                                key={brand.id}
-                                onClick={() => toggleBrand(brand.name)}
+                                key={brand}
+                                onClick={() => toggleBrand(brand)}
                                 className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
                                     isSelected
                                         ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
                                         : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
                                 }`}
                             >
-                                {brand.name}
+                                {brand}
                             </button>
                         );
                     })}
                 </div>
             </div>
+            )}
 
-            {/* RAM Filter */}
+            {accessoryTypeOptions.length > 0 && (
             <div>
-                <h3 className="text-gray-900 font-semibold mb-3">RAM</h3>
+                <h3 className="text-gray-900 font-semibold mb-3">Category</h3>
                 <div className="flex flex-wrap gap-2">
-                    {ramOptions.map(ram => {
-                        const isSelected = selectedRAM.includes(ram);
+                    {accessoryTypeOptions.map(t => {
+                        const isSelected = selectedAccessoryTypes.includes(t);
                         return (
                             <button
-                                key={ram}
-                                onClick={() => toggleRAM(ram)}
+                                key={t}
+                                onClick={() => toggleAccessoryType(t)}
                                 className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
                                     isSelected
                                         ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
                                         : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
                                 }`}
                             >
-                                {ram}
+                                {formatAccessoryTypeLabel(t)}
                             </button>
                         );
                     })}
                 </div>
             </div>
+            )}
 
-            {/* Processor Filter */}
+            {connectivityOptions.length > 0 && (
             <div>
-                <h3 className="text-gray-900 font-semibold mb-3">Processor</h3>
+                <h3 className="text-gray-900 font-semibold mb-3">Connectivity</h3>
                 <div className="flex flex-wrap gap-2">
-                    {processorOptions.map(processor => {
-                        const isSelected = selectedProcessors.includes(processor);
+                    {connectivityOptions.map(c => {
+                        const isSelected = selectedConnectivity.includes(c);
                         return (
                             <button
-                                key={processor}
-                                onClick={() => toggleProcessor(processor)}
+                                key={c}
+                                onClick={() => toggleConnectivity(c)}
                                 className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
                                     isSelected
                                         ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
                                         : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
                                 }`}
                             >
-                                {processor}
+                                {c}
                             </button>
                         );
                     })}
                 </div>
             </div>
+            )}
 
             {/* Price Range Slider */}
             <div>
@@ -356,7 +315,7 @@ export default function AccessoriesPage() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                             <input
                                 type="text"
-                                placeholder="Search by name, brand, or processor..."
+                                placeholder="Search by name, brand, category, or features..."
                                 value={searchQuery}
                                 onChange={(e) => {
                                     setSearchQuery(e.target.value);
@@ -507,34 +466,27 @@ export default function AccessoriesPage() {
                                                             {product.name}
                                                         </h3>
 
-                                                        {/* Specs */}
                                                         <div className="grid grid-cols-2 gap-2 mb-4">
-                                                            {product.specs?.processor && (
+                                                            <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
+                                                                <Tag size={12} className="flex-shrink-0" />
+                                                                <span>{formatAccessoryTypeLabel(product.accessoryType)}</span>
+                                                            </div>
+                                                            {product.specs?.keyFeature && (
                                                                 <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
-                                                                    <Cpu size={12} className="flex-shrink-0" />
-                                                                    <div className="text-scroll-container">
-                                                                        <span className="text-scroll-content" data-text={product.specs.processor}>{product.specs.processor}</span>
-                                                                    </div>
+                                                                    <Package size={12} className="flex-shrink-0" />
+                                                                    <span className="line-clamp-2">{product.specs.keyFeature}</span>
                                                                 </div>
                                                             )}
-                                                            {product.specs?.ram && (
-                                                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                                                    <MemoryStick size={12} />
-                                                                    <span>{product.specs.ram}</span>
-                                                                </div>
-                                                            )}
-                                                            {product.specs?.storage && (
-                                                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                                                    <HardDrive size={12} />
-                                                                    <span>{product.specs.storage}</span>
-                                                                </div>
-                                                            )}
-                                                            {product.specs?.screen && (
+                                                            {product.specs?.connectivity && (
                                                                 <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
-                                                                    <Monitor size={12} className="flex-shrink-0" />
-                                                                    <div className="text-scroll-container">
-                                                                        <span className="text-scroll-content" data-text={product.specs.screen}>{product.specs.screen}</span>
-                                                                    </div>
+                                                                    <Usb size={12} className="flex-shrink-0" />
+                                                                    <span className="line-clamp-2">{product.specs.connectivity}</span>
+                                                                </div>
+                                                            )}
+                                                            {product.specs?.compatibility && (
+                                                                <div className="col-span-2 flex items-start gap-1.5 text-xs text-gray-500 min-w-0">
+                                                                    <span className="font-medium text-gray-400 shrink-0">For:</span>
+                                                                    <span className="line-clamp-2">{product.specs.compatibility}</span>
                                                                 </div>
                                                             )}
                                                         </div>

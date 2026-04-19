@@ -2,60 +2,32 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SlidersHorizontal, X, ChevronLeft, ChevronRight, Cpu, HardDrive, Monitor, MemoryStick } from 'lucide-react';
+import { Search, SlidersHorizontal, X, Cpu, HardDrive, Monitor, Usb } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getProductsByType, getBrands } from '@/lib/firebase-services';
-import { Product, Brand } from '@/lib/types';
+import { getProductsByType } from '@/lib/firebase-services';
+import { Product } from '@/lib/types';
+import {
+    getBrandOptions,
+    getUniqueSpecValues,
+    getTabletScreenOptions,
+    getTabletChipOptions,
+    getProductTabletScreen,
+    getProductTabletChip,
+} from '@/lib/filter-utils';
 import DualRangeSlider from '@/components/DualRangeSlider';
 
 
 const ITEMS_PER_PAGE = 6;
 
-// Helper to extract processor family from full processor name
-const getProcessorFamily = (processor: string): string => {
-    const lower = processor.toLowerCase();
-    if (lower.includes('i9')) return 'Intel i9';
-    if (lower.includes('i7')) return 'Intel i7';
-    if (lower.includes('i5')) return 'Intel i5';
-    if (lower.includes('i3')) return 'Intel i3';
-    if (lower.includes('ryzen 9') || lower.includes('r9')) return 'Ryzen 9';
-    if (lower.includes('ryzen 7') || lower.includes('r7')) return 'Ryzen 7';
-    if (lower.includes('ryzen 5') || lower.includes('r5')) return 'Ryzen 5';
-    if (lower.includes('ryzen 3') || lower.includes('r3')) return 'Ryzen 3';
-    if (lower.includes('m1') || lower.includes('m2') || lower.includes('m3') || lower.includes('m4')) return 'Apple Silicon';
-    if (lower.includes('celeron')) return 'Intel Celeron';
-    if (lower.includes('pentium')) return 'Intel Pentium';
-    return 'Other';
-};
-
-// Helper to check if a processor matches a family
-const processorMatchesFamily = (processor: string, family: string): boolean => {
-    const lower = processor.toLowerCase();
-    const familyLower = family.toLowerCase();
-
-    if (familyLower.includes('i9')) return lower.includes('i9');
-    if (familyLower.includes('i7')) return lower.includes('i7');
-    if (familyLower.includes('i5')) return lower.includes('i5');
-    if (familyLower.includes('i3')) return lower.includes('i3');
-    if (familyLower.includes('ryzen 9')) return lower.includes('ryzen 9') || lower.includes('r9');
-    if (familyLower.includes('ryzen 7')) return lower.includes('ryzen 7') || lower.includes('r7');
-    if (familyLower.includes('ryzen 5')) return lower.includes('ryzen 5') || lower.includes('r5');
-    if (familyLower.includes('ryzen 3')) return lower.includes('ryzen 3') || lower.includes('r3');
-    if (familyLower.includes('apple')) return lower.includes('m1') || lower.includes('m2') || lower.includes('m3') || lower.includes('m4');
-    if (familyLower.includes('celeron')) return lower.includes('celeron');
-    if (familyLower.includes('pentium')) return lower.includes('pentium');
-    return false;
-};
-
 export default function TabletPage() {
     const [products, setProducts] = useState<Product[]>([]);
-    const [brands, setBrands] = useState<Brand[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-    const [selectedRAM, setSelectedRAM] = useState<string[]>([]);
-    const [selectedProcessors, setSelectedProcessors] = useState<string[]>([]);
+    const [selectedStorages, setSelectedStorages] = useState<string[]>([]);
+    const [selectedScreens, setSelectedScreens] = useState<string[]>([]);
+    const [selectedChips, setSelectedChips] = useState<string[]>([]);
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 200000]);
     const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -75,30 +47,16 @@ export default function TabletPage() {
         }
     }, [maxPrice, products.length]);
 
-    // Extract unique RAM and Processor options from products
-    const ramOptions = useMemo(() => {
-        const rams = products.map(p => p.specs?.ram).filter(Boolean) as string[];
-        // Extract only the first word (e.g., "08GB" from "08GB DDR4 RAM")
-        const ramShort = rams.map(r => r.split(' ')[0]);
-        return [...new Set(ramShort)].sort();
-    }, [products]);
+    const brandOptions = useMemo(() => getBrandOptions(products), [products]);
+    const storageOptions = useMemo(() => getUniqueSpecValues(products, 'storage'), [products]);
+    const screenOptions = useMemo(() => getTabletScreenOptions(products), [products]);
+    const chipOptions = useMemo(() => getTabletChipOptions(products), [products]);
 
-    const processorOptions = useMemo(() => {
-        const processors = products.map(p => p.specs?.processor).filter(Boolean) as string[];
-        const processorFamilies = processors.map(p => getProcessorFamily(p));
-        return [...new Set(processorFamilies)].filter(p => p !== 'Other').sort();
-    }, [products]);
-
-    // Fetch products and brands from Firebase
     useEffect(() => {
         async function fetchData() {
             try {
-                const [productsData, brandsData] = await Promise.all([
-                    getProductsByType('ipad'),
-                    getBrands()
-                ]);
+                const productsData = await getProductsByType('ipad');
 
-                // Randomize products to show various products every time (Fisher-Yates shuffle)
                 const shuffledProducts = [...productsData];
                 for (let i = shuffledProducts.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
@@ -106,7 +64,6 @@ export default function TabletPage() {
                 }
 
                 setProducts(shuffledProducts);
-                setBrands(brandsData);
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
@@ -116,29 +73,36 @@ export default function TabletPage() {
         fetchData();
     }, []);
 
-    // Filter products
     const filteredProducts = useMemo(() => {
+        const q = searchQuery.toLowerCase();
         return products.filter(product => {
+            const screenVal = getProductTabletScreen(product);
+            const chipVal = getProductTabletChip(product);
             const matchesSearch = searchQuery === '' ||
-                product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                product.brandName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (product.specs?.processor?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+                product.name.toLowerCase().includes(q) ||
+                product.brandName.toLowerCase().includes(q) ||
+                (product.specs?.storage?.toLowerCase().includes(q) ?? false) ||
+                (screenVal?.toLowerCase().includes(q) ?? false) ||
+                (chipVal?.toLowerCase().includes(q) ?? false) ||
+                (product.specs?.chipset?.toLowerCase().includes(q) ?? false) ||
+                (product.specs?.connectivity?.toLowerCase().includes(q) ?? false);
 
             const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(product.brandName);
 
-            // Match RAM by checking if the full RAM starts with the selected short version
-            const matchesRAM = selectedRAM.length === 0 ||
-                (product.specs?.ram && selectedRAM.some(sr => product.specs?.ram?.startsWith(sr)));
+            const matchesStorage = selectedStorages.length === 0 ||
+                (product.specs?.storage && selectedStorages.includes(product.specs.storage));
 
-            // Match processor by checking if the processor belongs to the selected family
-            const matchesProcessor = selectedProcessors.length === 0 ||
-                (product.specs?.processor && selectedProcessors.some(family => processorMatchesFamily(product.specs!.processor!, family)));
+            const matchesScreen = selectedScreens.length === 0 ||
+                (screenVal && selectedScreens.includes(screenVal));
+
+            const matchesChip = selectedChips.length === 0 ||
+                (chipVal && selectedChips.includes(chipVal));
 
             const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
 
-            return matchesSearch && matchesBrand && matchesRAM && matchesProcessor && matchesPrice;
+            return matchesSearch && matchesBrand && matchesStorage && matchesScreen && matchesChip && matchesPrice;
         });
-    }, [products, searchQuery, selectedBrands, selectedRAM, selectedProcessors, priceRange]);
+    }, [products, searchQuery, selectedBrands, selectedStorages, selectedScreens, selectedChips, priceRange]);
 
     // Infinite Scroll setup
     const hasMore = visibleCount < filteredProducts.length;
@@ -173,16 +137,23 @@ export default function TabletPage() {
         handleFilterChange();
     };
 
-    const toggleRAM = (ram: string) => {
-        setSelectedRAM(prev =>
-            prev.includes(ram) ? prev.filter(r => r !== ram) : [...prev, ram]
+    const toggleStorage = (storage: string) => {
+        setSelectedStorages(prev =>
+            prev.includes(storage) ? prev.filter(s => s !== storage) : [...prev, storage]
         );
         handleFilterChange();
     };
 
-    const toggleProcessor = (processor: string) => {
-        setSelectedProcessors(prev =>
-            prev.includes(processor) ? prev.filter(p => p !== processor) : [...prev, processor]
+    const toggleScreen = (screen: string) => {
+        setSelectedScreens(prev =>
+            prev.includes(screen) ? prev.filter(s => s !== screen) : [...prev, screen]
+        );
+        handleFilterChange();
+    };
+
+    const toggleChip = (chip: string) => {
+        setSelectedChips(prev =>
+            prev.includes(chip) ? prev.filter(c => c !== chip) : [...prev, chip]
         );
         handleFilterChange();
     };
@@ -190,13 +161,14 @@ export default function TabletPage() {
     const clearAllFilters = () => {
         setSearchQuery('');
         setSelectedBrands([]);
-        setSelectedRAM([]);
-        setSelectedProcessors([]);
+        setSelectedStorages([]);
+        setSelectedScreens([]);
+        setSelectedChips([]);
         setPriceRange([0, maxPrice]);
         setVisibleCount(ITEMS_PER_PAGE);
     };
 
-    const hasActiveFilters = searchQuery || selectedBrands.length > 0 || selectedRAM.length > 0 || selectedProcessors.length > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice;
+    const hasActiveFilters = searchQuery || selectedBrands.length > 0 || selectedStorages.length > 0 || selectedScreens.length > 0 || selectedChips.length > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice;
 
     const FilterSidebar = () => (
         <div className="space-y-6">
@@ -211,74 +183,101 @@ export default function TabletPage() {
                 </button>
             )}
 
-            {/* Brand Filter */}
+            {brandOptions.length > 0 && (
             <div>
                 <h3 className="text-gray-900 font-semibold mb-3">Brand</h3>
                 <div className="flex flex-wrap gap-2">
-                    {brands.map(brand => {
-                        const isSelected = selectedBrands.includes(brand.name);
+                    {brandOptions.map(brand => {
+                        const isSelected = selectedBrands.includes(brand);
                         return (
                             <button
-                                key={brand.id}
-                                onClick={() => toggleBrand(brand.name)}
+                                key={brand}
+                                onClick={() => toggleBrand(brand)}
                                 className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
                                     isSelected
                                         ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
                                         : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
                                 }`}
                             >
-                                {brand.name}
+                                {brand}
                             </button>
                         );
                     })}
                 </div>
             </div>
+            )}
 
-            {/* RAM Filter */}
+            {storageOptions.length > 0 && (
             <div>
-                <h3 className="text-gray-900 font-semibold mb-3">RAM</h3>
+                <h3 className="text-gray-900 font-semibold mb-3">Storage</h3>
                 <div className="flex flex-wrap gap-2">
-                    {ramOptions.map(ram => {
-                        const isSelected = selectedRAM.includes(ram);
+                    {storageOptions.map(storage => {
+                        const isSelected = selectedStorages.includes(storage);
                         return (
                             <button
-                                key={ram}
-                                onClick={() => toggleRAM(ram)}
+                                key={storage}
+                                onClick={() => toggleStorage(storage)}
                                 className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
                                     isSelected
                                         ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
                                         : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
                                 }`}
                             >
-                                {ram}
+                                {storage}
                             </button>
                         );
                     })}
                 </div>
             </div>
+            )}
 
-            {/* Processor Filter */}
+            {screenOptions.length > 0 && (
             <div>
-                <h3 className="text-gray-900 font-semibold mb-3">Processor</h3>
+                <h3 className="text-gray-900 font-semibold mb-3">Screen</h3>
                 <div className="flex flex-wrap gap-2">
-                    {processorOptions.map(processor => {
-                        const isSelected = selectedProcessors.includes(processor);
+                    {screenOptions.map(screen => {
+                        const isSelected = selectedScreens.includes(screen);
                         return (
                             <button
-                                key={processor}
-                                onClick={() => toggleProcessor(processor)}
+                                key={screen}
+                                onClick={() => toggleScreen(screen)}
                                 className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
                                     isSelected
                                         ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
                                         : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
                                 }`}
                             >
-                                {processor}
+                                {screen}
                             </button>
                         );
                     })}
                 </div>
             </div>
+            )}
+
+            {chipOptions.length > 0 && (
+            <div>
+                <h3 className="text-gray-900 font-semibold mb-3">Chip</h3>
+                <div className="flex flex-wrap gap-2">
+                    {chipOptions.map(chip => {
+                        const isSelected = selectedChips.includes(chip);
+                        return (
+                            <button
+                                key={chip}
+                                onClick={() => toggleChip(chip)}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
+                                    isSelected
+                                        ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm'
+                                        : 'bg-white border-gray-200 text-gray-600 hover:border-cyan-300 hover:bg-cyan-50/50'
+                                }`}
+                            >
+                                {chip}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+            )}
 
             {/* Price Range Slider */}
             <div>
@@ -355,7 +354,7 @@ export default function TabletPage() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                             <input
                                 type="text"
-                                placeholder="Search by name, brand, or processor..."
+                                placeholder="Search by name, brand, storage, screen, or chip..."
                                 value={searchQuery}
                                 onChange={(e) => {
                                     setSearchQuery(e.target.value);
@@ -463,7 +462,10 @@ export default function TabletPage() {
                                     transition={{ delay: 0.3, duration: 0.5 }}
                                     className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 w-full"
                                 >
-                                    {displayedProducts.map((product, index) => (
+                                    {displayedProducts.map((product, index) => {
+                                        const screenLabel = getProductTabletScreen(product);
+                                        const chipLabel = getProductTabletChip(product);
+                                        return (
                                         <motion.div
                                             key={product.id}
                                             initial={{ opacity: 0, y: 20 }}
@@ -506,34 +508,34 @@ export default function TabletPage() {
                                                             {product.name}
                                                         </h3>
 
-                                                        {/* Specs */}
+                                                        {/* Specs — tablet-focused */}
                                                         <div className="grid grid-cols-2 gap-2 mb-4">
-                                                            {product.specs?.processor && (
-                                                                <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
-                                                                    <Cpu size={12} className="flex-shrink-0" />
-                                                                    <div className="text-scroll-container">
-                                                                        <span className="text-scroll-content" data-text={product.specs.processor}>{product.specs.processor}</span>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                            {product.specs?.ram && (
-                                                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                                                    <MemoryStick size={12} />
-                                                                    <span>{product.specs.ram}</span>
-                                                                </div>
-                                                            )}
                                                             {product.specs?.storage && (
                                                                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
                                                                     <HardDrive size={12} />
                                                                     <span>{product.specs.storage}</span>
                                                                 </div>
                                                             )}
-                                                            {product.specs?.screen && (
+                                                            {screenLabel && (
                                                                 <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
                                                                     <Monitor size={12} className="flex-shrink-0" />
                                                                     <div className="text-scroll-container">
-                                                                        <span className="text-scroll-content" data-text={product.specs.screen}>{product.specs.screen}</span>
+                                                                        <span className="text-scroll-content" data-text={screenLabel}>{screenLabel}</span>
                                                                     </div>
+                                                                </div>
+                                                            )}
+                                                            {chipLabel && (
+                                                                <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
+                                                                    <Cpu size={12} className="flex-shrink-0" />
+                                                                    <div className="text-scroll-container">
+                                                                        <span className="text-scroll-content" data-text={chipLabel}>{chipLabel}</span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {product.specs?.connectivity && (
+                                                                <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
+                                                                    <Usb size={12} className="flex-shrink-0" />
+                                                                    <span>{product.specs.connectivity}</span>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -553,7 +555,8 @@ export default function TabletPage() {
                                                 </div>
                                             </Link>
                                         </motion.div>
-                                    ))}
+                                        );
+                                    })}
                                 </motion.div>
 
                                 {/* Infinite Scroll Loader Target */}

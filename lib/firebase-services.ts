@@ -10,9 +10,10 @@ import {
     orderBy,
     limit,
     Timestamp,
-    serverTimestamp
+    serverTimestamp,
+    type DocumentSnapshot,
 } from 'firebase/firestore';
-import { Product, Category, Brand, Testimonial, ProductRequest, PromoOffer, Accessory } from './types';
+import { Product, Category, Brand, Testimonial, ProductRequest, PromoOffer, Accessory, Combo, ComboComponent } from './types';
 
 // Helper to convert Firestore timestamp to Date
 const convertTimestamp = (timestamp: Timestamp | undefined): Date => {
@@ -427,6 +428,34 @@ export async function submitProductRequest(data: SubmitProductRequestData): Prom
     }
 }
 
+/** Same collection as product requests; productId holds the combo Firestore doc id. */
+export interface SubmitComboRequestData {
+    comboId: string;
+    comboName: string;
+    comboSlug: string;
+    customerName: string;
+    customerPhone: string;
+}
+
+export async function submitComboRequest(data: SubmitComboRequestData): Promise<{ success: boolean; id?: string; error?: string }> {
+    try {
+        const requestsRef = collection(db, 'productRequests');
+        const docRef = await addDoc(requestsRef, {
+            productId: data.comboId,
+            productName: `[Combo] ${data.comboName}`,
+            productSlug: data.comboSlug,
+            customerName: data.customerName,
+            customerPhone: data.customerPhone,
+            status: 'pending',
+            createdAt: serverTimestamp(),
+        });
+        return { success: true, id: docRef.id };
+    } catch (error) {
+        console.error('Error submitting combo request:', error);
+        return { success: false, error: 'Failed to submit request. Please try again.' };
+    }
+}
+
 // ============ CONTACT REQUESTS ============
 
 export interface SubmitContactRequestData {
@@ -500,10 +529,10 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
     if (!ids || ids.length === 0) return [];
 
     try {
+        const snapshots = await Promise.all(ids.map(id => getDoc(doc(db, 'products', id))));
         const products: Product[] = [];
-        for (const id of ids) {
-            const productRef = doc(db, 'products', id);
-            const snapshot = await getDoc(productRef);
+        for (let i = 0; i < ids.length; i++) {
+            const snapshot = snapshots[i];
             if (snapshot.exists()) {
                 products.push(docToProduct(snapshot));
             }
@@ -511,6 +540,120 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
         return products;
     } catch (error) {
         console.error('Error fetching products by IDs:', error);
+        return [];
+    }
+}
+
+/**
+ * Parallel fetch: map each productId → Product or null if missing/inactive data.
+ * Prefer this for combo pages to avoid N+1 sequential getDoc latency.
+ */
+export async function getProductsByIdMap(ids: string[]): Promise<Map<string, Product | null>> {
+    const unique = [...new Set(ids.filter(Boolean))];
+    const map = new Map<string, Product | null>();
+    if (unique.length === 0) return map;
+
+    try {
+        const snapshots = await Promise.all(unique.map(id => getDoc(doc(db, 'products', id))));
+        unique.forEach((id, i) => {
+            const snapshot = snapshots[i];
+            map.set(id, snapshot.exists() ? docToProduct(snapshot) : null);
+        });
+        return map;
+    } catch (error) {
+        console.error('Error fetching products by id map:', error);
+        unique.forEach(id => map.set(id, null));
+        return map;
+    }
+}
+
+// ============ COMBOS ============
+//
+// Firestore indexes (create in Firebase console if queries fail):
+// - combos: collection group query uses equality on `slug` only below to minimize index needs.
+// - Optional: composite (isActive ASC, createdAt DESC) if you switch to query+orderBy in Firestore.
+//   Current list query: where isActive == true only is NOT used; we filter in memory after slug lookup
+//   For listing, we use: where('isActive','==',true) — single-field index is usually auto-created.
+
+function normalizeComboComponents(raw: unknown): ComboComponent[] {
+    if (!Array.isArray(raw)) return [];
+    return raw
+        .map((c: Record<string, unknown>, i: number) => ({
+            productId: String(c.productId ?? ''),
+            quantity: typeof c.quantity === 'number' && !Number.isNaN(c.quantity) ? c.quantity : 1,
+            sortOrder: typeof c.sortOrder === 'number' && !Number.isNaN(c.sortOrder) ? c.sortOrder : i,
+            productNameSnapshot:
+                c.productNameSnapshot != null && c.productNameSnapshot !== ''
+                    ? String(c.productNameSnapshot)
+                    : null,
+        }))
+        .filter(c => c.productId.length > 0)
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+function docToCombo(docSnap: DocumentSnapshot): Combo {
+    const data = docSnap.data()!;
+    return {
+        id: docSnap.id,
+        name: data.name || '',
+        slug: data.slug || docSnap.id,
+        description: data.description != null ? String(data.description) : null,
+        components: normalizeComboComponents(data.components),
+        price: typeof data.price === 'number' ? data.price : 0,
+        originalPrice: typeof data.originalPrice === 'number' ? data.originalPrice : null,
+        stock: typeof data.stock === 'number' ? data.stock : 0,
+        isActive: data.isActive !== false,
+        isFeatured: data.isFeatured === true,
+        images: Array.isArray(data.images) ? data.images.filter((u: unknown) => typeof u === 'string') : [],
+        youtubeUrl: data.youtubeUrl != null && data.youtubeUrl !== '' ? String(data.youtubeUrl) : null,
+        createdAt: convertTimestamp(data.createdAt),
+        updatedAt: convertTimestamp(data.updatedAt),
+    };
+}
+
+export async function getActiveCombos(): Promise<Combo[]> {
+    try {
+        const combosRef = collection(db, 'combos');
+        const q = query(combosRef, where('isActive', '==', true));
+        const snapshot = await getDocs(q);
+        const combos = snapshot.docs.map(docToCombo);
+        return combos.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    } catch (error) {
+        console.error('Error fetching active combos:', error);
+        return [];
+    }
+}
+
+export async function getFeaturedCombos(limitCount: number = 6): Promise<Combo[]> {
+    const all = await getActiveCombos();
+    const featured = all.filter(c => c.isFeatured);
+    return featured.slice(0, limitCount);
+}
+
+export async function getComboBySlug(slug: string): Promise<Combo | null> {
+    if (!slug?.trim()) return null;
+    try {
+        const combosRef = collection(db, 'combos');
+        const q = query(combosRef, where('slug', '==', slug.trim()), limit(1));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) return null;
+        const combo = docToCombo(snapshot.docs[0]);
+        if (!combo.isActive) return null;
+        return combo;
+    } catch (error) {
+        console.error('Error fetching combo by slug:', error);
+        return null;
+    }
+}
+
+export async function getAllComboSlugs(): Promise<string[]> {
+    try {
+        const combosRef = collection(db, 'combos');
+        const q = query(combosRef, where('isActive', '==', true));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(d => docToCombo(d).slug).filter(Boolean);
+    } catch (error) {
+        console.error('Error fetching combo slugs:', error);
         return [];
     }
 }
