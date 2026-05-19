@@ -7,7 +7,7 @@ import Link from 'next/link';
 const warrantyPlans = [
     {
         name: 'Standard',
-        duration: '3 Months',
+        duration: '1 Month',
         price: 'Included',
         color: 'from-gray-500 to-gray-600',
         features: [
@@ -19,8 +19,8 @@ const warrantyPlans = [
     },
     {
         name: 'Extended',
-        duration: '12 Months',
-        price: '₹2,999',
+        duration: '6 Months',
+        price: '₹2,499',
         color: 'from-cyan-500 to-blue-600',
         popular: true,
         features: [
@@ -33,8 +33,8 @@ const warrantyPlans = [
     },
     {
         name: 'Premium',
-        duration: '24 Months',
-        price: '₹4,999',
+        duration: '12 Months',
+        price: '₹3,999',
         color: 'from-purple-500 to-pink-600',
         features: [
             'Everything in Extended',
