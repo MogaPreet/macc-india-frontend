@@ -24,11 +24,10 @@ const warrantyPlans = [
         color: 'from-cyan-500 to-blue-600',
         popular: true,
         features: [
-            'Everything in Standard',
-            'Accidental damage protection',
-            'Priority phone support',
-            'Free pickup & delivery',
-            'Battery replacement (once)',
+            'Hardware defect coverage',
+            'Free repair or replacement',
+            'Remote troubleshooting support',
+            'Email support',
         ],
     },
     {
@@ -37,12 +36,10 @@ const warrantyPlans = [
         price: '₹3,999',
         color: 'from-purple-500 to-pink-600',
         features: [
-            'Everything in Extended',
-            'No-questions-asked replacement',
-            'On-site support (select cities)',
-            '24/7 dedicated support line',
-            'Free annual maintenance',
-            'Loaner laptop during repairs',
+            'Hardware defect coverage',
+            'Free repair or replacement',
+            'Remote troubleshooting support',
+            'Email support',
         ],
     },
 ];
