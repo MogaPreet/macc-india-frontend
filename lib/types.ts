@@ -257,3 +257,19 @@ export interface Accessory {
     createdAt: Date;
     updatedAt: Date;
 }
+
+export interface Blog {
+    id: string;
+    title: string;
+    slug: string;
+    excerpt: string;
+    content: string | null;
+    metaTitle: string | null;
+    metaDescription: string | null;
+    keywords: string[];
+    coverImage: string | null;
+    isPublished: boolean;
+    publishedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+}

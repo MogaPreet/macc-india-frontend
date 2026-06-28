@@ -15,6 +15,8 @@ import {
     getProductTabletScreen,
     getProductTabletChip,
 } from '@/lib/filter-utils';
+import { URL_FILTER_PARAMS } from '@/lib/url-filters';
+import { useListingUrlFilters } from '@/hooks/useListingUrlFilters';
 import DualRangeSlider from '@/components/DualRangeSlider';
 
 
@@ -40,12 +42,31 @@ export default function TabletPage() {
         return Math.max(...products.map(p => p.price)) + 10000;
     }, [products]);
 
-    // Update price range when maxPrice changes (after products load)
-    useEffect(() => {
-        if (products.length > 0) {
-            setPriceRange(prev => [prev[0], maxPrice]);
-        }
-    }, [maxPrice, products.length]);
+    const arrayFilters = useMemo(
+        () => [
+            { param: URL_FILTER_PARAMS.storage, value: selectedStorages },
+            { param: URL_FILTER_PARAMS.screen, value: selectedScreens },
+            { param: URL_FILTER_PARAMS.chip, value: selectedChips },
+        ],
+        [selectedStorages, selectedScreens, selectedChips]
+    );
+
+    useListingUrlFilters({
+        maxPrice,
+        productsLoaded: !loading,
+        searchQuery,
+        selectedBrands,
+        priceRange,
+        arrayFilters,
+        setSearchQuery,
+        setSelectedBrands,
+        setPriceRange,
+        arraySetters: [
+            { param: URL_FILTER_PARAMS.storage, setter: setSelectedStorages },
+            { param: URL_FILTER_PARAMS.screen, setter: setSelectedScreens },
+            { param: URL_FILTER_PARAMS.chip, setter: setSelectedChips },
+        ],
+    });
 
     const brandOptions = useMemo(() => getBrandOptions(products), [products]);
     const storageOptions = useMemo(() => getUniqueSpecValues(products, 'storage'), [products]);

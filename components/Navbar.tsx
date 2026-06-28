@@ -107,21 +107,19 @@ export default function Navbar() {
                         }}
                         className="flex items-center gap-2 group"
                     >
-                        <div className="relative">
-                            <div className="w-11 h-11 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
-                                <img
-                                    src="/favicon1.png"
-                                    alt="Macc-India Logo"
-                                    className="object-cover w-full h-full scale-125"
-                                />
-                            </div>
-                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-900 animate-pulse"></div>
+                        <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <img
+                                src="/macc-logo-trans.png"
+                                alt="Macc-India Logo"
+                                className="object-contain w-full h-full"
+                            />
                         </div>
                         <div className="flex flex-col">
                             <div className="flex items-center gap-1.5">
                                 <span className="text-lg md:text-xl font-bold text-white leading-tight">
                                     Macc-<span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">India</span>
                                 </span>
+                                <span className="text-xl">🇮🇳</span>
                             </div>
                             <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
                                 Premium Refurbished

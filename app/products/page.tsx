@@ -13,6 +13,8 @@ import {
     getProcessorOptions,
     processorMatchesFamily,
 } from '@/lib/filter-utils';
+import { URL_FILTER_PARAMS } from '@/lib/url-filters';
+import { useListingUrlFilters } from '@/hooks/useListingUrlFilters';
 import DualRangeSlider from '@/components/DualRangeSlider';
 
 
@@ -37,12 +39,29 @@ export default function ProductsPage() {
         return Math.max(...products.map(p => p.price)) + 10000;
     }, [products]);
 
-    // Update price range when maxPrice changes (after products load)
-    useEffect(() => {
-        if (products.length > 0) {
-            setPriceRange(prev => [prev[0], maxPrice]);
-        }
-    }, [maxPrice, products.length]);
+    const arrayFilters = useMemo(
+        () => [
+            { param: URL_FILTER_PARAMS.ram, value: selectedRAM },
+            { param: URL_FILTER_PARAMS.processor, value: selectedProcessors },
+        ],
+        [selectedRAM, selectedProcessors]
+    );
+
+    useListingUrlFilters({
+        maxPrice,
+        productsLoaded: !loading,
+        searchQuery,
+        selectedBrands,
+        priceRange,
+        arrayFilters,
+        setSearchQuery,
+        setSelectedBrands,
+        setPriceRange,
+        arraySetters: [
+            { param: URL_FILTER_PARAMS.ram, setter: setSelectedRAM },
+            { param: URL_FILTER_PARAMS.processor, setter: setSelectedProcessors },
+        ],
+    });
 
     const brandOptions = useMemo(() => getBrandOptions(products), [products]);
     const ramOptions = useMemo(() => getRAMOptions(products), [products]);

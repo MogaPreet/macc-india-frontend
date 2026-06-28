@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { getProducts, getCategories } from '@/lib/firebase-services';
+import { getProducts, getCategories, getPublishedBlogs } from '@/lib/firebase-services';
 
 const BASE_URL = 'https://www.maccindia.in';
 
@@ -54,6 +54,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: 'yearly',
             priority: 0.3,
         },
+        {
+            url: `${BASE_URL}/blog`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.6,
+        },
     ];
 
     // Fetch dynamic product pages
@@ -84,5 +90,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         console.error('Error fetching categories for sitemap:', error);
     }
 
-    return [...staticPages, ...productPages, ...categoryPages];
+    // Fetch published blog posts
+    let blogPages: MetadataRoute.Sitemap = [];
+    try {
+        const blogs = await getPublishedBlogs();
+        blogPages = blogs.map((blog) => ({
+            url: `${BASE_URL}/blog/${blog.slug}`,
+            lastModified: blog.updatedAt || blog.publishedAt || new Date(),
+            changeFrequency: 'weekly' as const,
+            priority: 0.7,
+        }));
+    } catch (error) {
+        console.error('Error fetching blogs for sitemap:', error);
+    }
+
+    return [...staticPages, ...productPages, ...categoryPages, ...blogPages];
 }

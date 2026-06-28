@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import ListingPageFallback from '@/components/ListingPageFallback';
 
 export const metadata: Metadata = {
     title: "All Refurbished Laptops - MacBook, Dell, HP & More",
@@ -27,5 +29,5 @@ export default function ProductsLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return children;
+    return <Suspense fallback={<ListingPageFallback />}>{children}</Suspense>;
 }

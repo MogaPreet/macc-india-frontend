@@ -8,6 +8,8 @@ import Link from 'next/link';
 import { getProductsByType } from '@/lib/firebase-services';
 import { Product } from '@/lib/types';
 import { getBrandOptions } from '@/lib/filter-utils';
+import { URL_FILTER_PARAMS } from '@/lib/url-filters';
+import { useListingUrlFilters } from '@/hooks/useListingUrlFilters';
 import DualRangeSlider from '@/components/DualRangeSlider';
 
 
@@ -32,12 +34,29 @@ export default function MonitorsPage() {
         return Math.max(...products.map(p => p.price)) + 10000;
     }, [products]);
 
-    // Update price range when maxPrice changes (after products load)
-    useEffect(() => {
-        if (products.length > 0) {
-            setPriceRange(prev => [prev[0], maxPrice]);
-        }
-    }, [maxPrice, products.length]);
+    const arrayFilters = useMemo(
+        () => [
+            { param: URL_FILTER_PARAMS.resolution, value: selectedResolutions },
+            { param: URL_FILTER_PARAMS.panel, value: selectedPanelTypes },
+        ],
+        [selectedResolutions, selectedPanelTypes]
+    );
+
+    useListingUrlFilters({
+        maxPrice,
+        productsLoaded: !loading,
+        searchQuery,
+        selectedBrands,
+        priceRange,
+        arrayFilters,
+        setSearchQuery,
+        setSelectedBrands,
+        setPriceRange,
+        arraySetters: [
+            { param: URL_FILTER_PARAMS.resolution, setter: setSelectedResolutions },
+            { param: URL_FILTER_PARAMS.panel, setter: setSelectedPanelTypes },
+        ],
+    });
 
     // Extract unique Resolution and Panel Type options from products
     const resolutionOptions = useMemo(() => {

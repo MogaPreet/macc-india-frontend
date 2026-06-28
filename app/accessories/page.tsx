@@ -13,6 +13,8 @@ import {
     formatAccessoryTypeLabel,
     getUniqueSpecValues,
 } from '@/lib/filter-utils';
+import { URL_FILTER_PARAMS } from '@/lib/url-filters';
+import { useListingUrlFilters } from '@/hooks/useListingUrlFilters';
 import DualRangeSlider from '@/components/DualRangeSlider';
 
 
@@ -37,12 +39,32 @@ export default function AccessoriesPage() {
         return Math.max(...products.map(p => p.price)) + 10000;
     }, [products]);
 
-    // Update price range when maxPrice changes (after products load)
-    useEffect(() => {
-        if (products.length > 0) {
-            setPriceRange(prev => [prev[0], maxPrice]);
-        }
-    }, [maxPrice, products.length]);
+    const arrayFilters = useMemo(
+        () => [
+            { param: URL_FILTER_PARAMS.type, value: selectedAccessoryTypes },
+            { param: URL_FILTER_PARAMS.connectivity, value: selectedConnectivity },
+        ],
+        [selectedAccessoryTypes, selectedConnectivity]
+    );
+
+    useListingUrlFilters({
+        maxPrice,
+        productsLoaded: !loading,
+        searchQuery,
+        selectedBrands,
+        priceRange,
+        arrayFilters,
+        setSearchQuery,
+        setSelectedBrands,
+        setPriceRange,
+        arraySetters: [
+            {
+                param: URL_FILTER_PARAMS.type,
+                setter: (values) => setSelectedAccessoryTypes(values as AccessoryType[]),
+            },
+            { param: URL_FILTER_PARAMS.connectivity, setter: setSelectedConnectivity },
+        ],
+    });
 
     const brandOptions = useMemo(() => getBrandOptions(products), [products]);
     const accessoryTypeOptions = useMemo(() => getAccessoryTypeOptions(products), [products]);

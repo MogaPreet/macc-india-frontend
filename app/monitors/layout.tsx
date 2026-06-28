@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import ListingPageFallback from '@/components/ListingPageFallback';
 
 export const metadata: Metadata = {
     title: "Refurbished Monitors & LED Displays - Dell, HP, LG & More | Macc-India",
@@ -27,5 +29,5 @@ export default function MonitorsLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return children;
+    return <Suspense fallback={<ListingPageFallback />}>{children}</Suspense>;
 }

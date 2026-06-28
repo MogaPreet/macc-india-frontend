@@ -6,19 +6,21 @@ const footerLinks = {
         { name: 'All Laptops', href: '/#products' },
         { name: 'Systems', href: '/systems' },
         { name: 'Monitors', href: '/monitors' },
-        { name: 'Components', href: '/components' },
+        { name: 'Accessories', href: '/accessories' },
+        { name: 'Tablet', href: '/tablet' },
+       
     ],
     support: [
         { name: 'Contact Us', href: '/contact' },
         { name: 'Warranty Info', href: '/warranty' },
-        { name: 'Shipping', href: '/shipping' },
+       
         { name: 'FAQs', href: '/faq' },
     ],
     legal: [
         { name: 'Privacy Policy', href: '/privacy' },
         { name: 'Terms of Service', href: '/terms' },
         { name: 'Return Policy', href: '/returns' },
-        { name: 'Disclaimer', href: '/disclaimer' },
+
     ],
 };
 

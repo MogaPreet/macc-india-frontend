@@ -13,7 +13,7 @@ import {
     serverTimestamp,
     type DocumentSnapshot,
 } from 'firebase/firestore';
-import { Product, Category, Brand, Testimonial, ProductRequest, PromoOffer, Accessory, Combo, ComboComponent } from './types';
+import { Product, Category, Brand, Testimonial, ProductRequest, PromoOffer, Accessory, Combo, ComboComponent, Blog } from './types';
 
 // Helper to convert Firestore timestamp to Date
 const convertTimestamp = (timestamp: Timestamp | undefined): Date => {
@@ -654,6 +654,76 @@ export async function getAllComboSlugs(): Promise<string[]> {
         return snapshot.docs.map(d => docToCombo(d).slug).filter(Boolean);
     } catch (error) {
         console.error('Error fetching combo slugs:', error);
+        return [];
+    }
+}
+
+// ============ BLOGS ============
+
+function docToBlog(docSnap: DocumentSnapshot): Blog {
+    const data = docSnap.data()!;
+    return {
+        id: docSnap.id,
+        title: data.title || '',
+        slug: data.slug || docSnap.id,
+        excerpt: data.excerpt || '',
+        content: data.content != null ? String(data.content) : null,
+        metaTitle: data.metaTitle != null && data.metaTitle !== '' ? String(data.metaTitle) : null,
+        metaDescription:
+            data.metaDescription != null && data.metaDescription !== ''
+                ? String(data.metaDescription)
+                : null,
+        keywords: Array.isArray(data.keywords)
+            ? data.keywords.filter((k: unknown) => typeof k === 'string')
+            : [],
+        coverImage:
+            data.coverImage != null && data.coverImage !== '' ? String(data.coverImage) : null,
+        isPublished: data.isPublished === true,
+        publishedAt: data.publishedAt ? convertTimestamp(data.publishedAt) : null,
+        createdAt: convertTimestamp(data.createdAt),
+        updatedAt: convertTimestamp(data.updatedAt),
+    };
+}
+
+export async function getPublishedBlogs(): Promise<Blog[]> {
+    try {
+        const blogsRef = collection(db, 'blogs');
+        const q = query(blogsRef, where('isPublished', '==', true));
+        const snapshot = await getDocs(q);
+        const blogs = snapshot.docs.map(docToBlog);
+        return blogs.sort((a, b) => {
+            const aTime = (a.publishedAt ?? a.createdAt).getTime();
+            const bTime = (b.publishedAt ?? b.createdAt).getTime();
+            return bTime - aTime;
+        });
+    } catch (error) {
+        console.error('Error fetching published blogs:', error);
+        return [];
+    }
+}
+
+export async function getBlogBySlug(slug: string): Promise<Blog | null> {
+    if (!slug?.trim()) return null;
+    try {
+        const blogsRef = collection(db, 'blogs');
+        const q = query(blogsRef, where('slug', '==', slug.trim()), limit(1));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) return null;
+        const blog = docToBlog(snapshot.docs[0]);
+        if (!blog.isPublished) return null;
+        return blog;
+    } catch (error) {
+        console.error('Error fetching blog by slug:', error);
+        return null;
+    }
+}
+
+export async function getAllBlogSlugs(): Promise<string[]> {
+    try {
+        const blogs = await getPublishedBlogs();
+        return blogs.map(b => b.slug).filter(Boolean);
+    } catch (error) {
+        console.error('Error fetching blog slugs:', error);
         return [];
     }
 }

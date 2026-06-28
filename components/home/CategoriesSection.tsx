@@ -86,12 +86,12 @@ export default function CategoriesSection() {
                     </p>
                 </motion.div>
 
-                {/* Bento Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[200px]">
-                    {/* Hero Card (Large - 2x2) */}
+                {/* Bento Grid — auto-rows only on md+ so mobile cards size to their min-height without overlap */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:auto-rows-[200px]">
+                    {/* Hero Card (Large - 2x2 on desktop) */}
                     <Link
                         href={`/category/${heroCategory.slug}`}
-                        className="md:col-span-2 md:row-span-2 relative group rounded-3xl overflow-hidden border border-white/10 min-h-[400px]"
+                        className="md:col-span-2 md:row-span-2 relative group rounded-3xl overflow-hidden border border-white/10 min-h-[280px] md:min-h-0"
                     >
                         <div className="absolute inset-0 bg-gray-900">
                             {/* Background GIF/Image from backend or map */}
