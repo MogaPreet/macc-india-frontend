@@ -11,9 +11,9 @@ const footerLinks = {
        
     ],
     support: [
+        { name: 'About Us', href: '/about' },
         { name: 'Contact Us', href: '/contact' },
         { name: 'Warranty Info', href: '/warranty' },
-       
         { name: 'FAQs', href: '/faq' },
     ],
     legal: [
