@@ -34,10 +34,11 @@ service cloud.firestore {
 
 ## Notes
 
-- The Next.js storefront queries `blogs` with `where('isPublished', '==', true)` and by `slug`.
+- The Next.js storefront queries `blogs` with `where('isPublished', '==', true)` and by `slug` + `isPublished` together.
 - Draft posts (`isPublished: false`) must not be readable by unauthenticated clients.
+- Slug-only queries will fail under these rules — always include `isPublished == true` in public queries.
 - If you use a stricter admin model (e.g. custom claims or `admin_users` collection), replace `request.auth != null` with your existing admin check pattern.
-- Create a composite index only if you add `orderBy('publishedAt')` in Firestore queries; current implementation sorts in memory after fetch.
+- Create a composite index on `blogs` for `slug` (Ascending) + `isPublished` (Ascending) when prompted by the Firebase console link. Listing still sorts in memory after fetch.
 
 ## Storage rules (cover images)
 

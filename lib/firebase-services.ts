@@ -704,17 +704,38 @@ export async function getPublishedBlogs(): Promise<Blog[]> {
 
 export async function getBlogBySlug(slug: string): Promise<Blog | null> {
     if (!slug?.trim()) return null;
+    const normalized = slug.trim();
+
+    const findInPublished = async (): Promise<Blog | null> => {
+        const published = await getPublishedBlogs();
+        return (
+            published.find(b => b.slug === normalized || b.id === normalized) ?? null
+        );
+    };
+
     try {
         const blogsRef = collection(db, 'blogs');
-        const q = query(blogsRef, where('slug', '==', slug.trim()), limit(1));
+        // Must filter isPublished so the query matches public Firestore read rules
+        // (slug-only queries are rejected because they could return drafts).
+        const q = query(
+            blogsRef,
+            where('slug', '==', normalized),
+            where('isPublished', '==', true),
+            limit(1)
+        );
         const snapshot = await getDocs(q);
-        if (snapshot.empty) return null;
-        const blog = docToBlog(snapshot.docs[0]);
-        if (!blog.isPublished) return null;
-        return blog;
+        if (!snapshot.empty) {
+            return docToBlog(snapshot.docs[0]);
+        }
+        return findInPublished();
     } catch (error) {
         console.error('Error fetching blog by slug:', error);
-        return null;
+        // Fallback if composite index is missing or query is denied
+        try {
+            return await findInPublished();
+        } catch {
+            return null;
+        }
     }
 }
 
