@@ -332,6 +332,7 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
             icon: data.icon,
             color: data.color,
             image: data.image,
+            gifUrl: data.gifUrl,
             order: data.order || 0,
             isActive: data.isActive !== false,
             createdAt: convertTimestamp(data.createdAt),

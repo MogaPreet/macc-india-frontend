@@ -31,50 +31,43 @@ const brands = [
 ];
 
 export default function BrandCarousel() {
-    // Triple the brands for seamless infinite loop
     const duplicatedBrands = [...brands, ...brands, ...brands];
 
     return (
-        <section className="py-16 md:py-20 bg-gradient-to-b from-[#0d0d14] to-gray-900 overflow-hidden">
+        <section className="py-14 md:py-20 bg-black overflow-hidden border-t border-white/5">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Section Header */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center mb-6 md:mb-8"
+                    transition={{ duration: 0.5 }}
+                    className="text-center mb-8 md:mb-10"
                 >
-                    <h2 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-1">
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400 mb-2">
                         Trusted Brands
-                    </h2>
-                    <p className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
-                        Shop Top Laptop Brands
                     </p>
+                    <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+                        Shop Top Laptop Brands
+                    </h2>
                 </motion.div>
             </div>
 
-            {/* Marquee Container */}
             <div className="relative">
-                {/* Gradient Fade Left */}
-                <div className="absolute left-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-r from-gray-900 to-transparent z-10 pointer-events-none"></div>
+                <div className="absolute left-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
 
-                {/* Gradient Fade Right */}
-                <div className="absolute right-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-l from-gray-900 to-transparent z-10 pointer-events-none"></div>
-
-                {/* Scrolling Marquee - Infinite */}
-                <div className="flex animate-marquee hover:[animation-play-state:paused]">
+                <div className="flex animate-marquee hover:[animation-play-state:paused] motion-reduce:animate-none">
                     {duplicatedBrands.map((brand, index) => (
                         <div
                             key={`${brand.name}-${index}`}
-                            className="flex-shrink-0 mx-4 md:mx-8 lg:mx-10"
+                            className="flex-shrink-0 mx-3 sm:mx-5 md:mx-8"
                         >
-                            <div className="relative w-20 h-12 md:w-28 md:h-14 lg:w-32 lg:h-16 flex items-center justify-center opacity-40 hover:opacity-90 transition-all duration-300 cursor-pointer">
+                            <div className="relative w-28 h-16 sm:w-32 sm:h-16 md:w-36 md:h-20 flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 opacity-60 hover:opacity-100 transition-opacity duration-300">
                                 <Image
                                     src={brand.logo}
                                     alt={`${brand.name} logo`}
                                     fill
-                                    className="object-contain p-1 md:p-2 invert brightness-0 invert"
+                                    className="object-contain p-3 sm:p-4 invert brightness-0 invert"
                                     unoptimized
                                 />
                             </div>

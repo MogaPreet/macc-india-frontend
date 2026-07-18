@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { getFeaturedProducts } from '@/lib/firebase-services';
 import { Product } from '@/lib/types';
 
@@ -25,29 +26,24 @@ export default function ProductGrid() {
         fetchProducts();
     }, []);
 
-    // Loading skeleton
     if (loading) {
         return (
-            <section id="products" className="py-20 md:py-28 bg-gradient-to-b from-black to-gray-900">
+            <section id="products" className="py-16 md:py-24 bg-black">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
-                        <div>
-                            <div className="h-5 w-24 bg-white/10 rounded animate-pulse mb-2"></div>
-                            <div className="h-10 w-48 bg-white/10 rounded animate-pulse"></div>
-                        </div>
+                    <div className="mb-10 space-y-2">
+                        <div className="h-4 w-24 bg-white/10 rounded animate-pulse" />
+                        <div className="h-9 w-48 bg-white/10 rounded animate-pulse" />
                     </div>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
                         {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-                                <div className="aspect-[4/3] bg-white/10 animate-pulse"></div>
-                                <div className="p-5 space-y-3">
-                                    <div className="h-4 w-16 bg-white/10 rounded animate-pulse"></div>
-                                    <div className="h-6 w-full bg-white/10 rounded animate-pulse"></div>
-                                    <div className="flex gap-2">
-                                        <div className="h-6 w-16 bg-white/10 rounded animate-pulse"></div>
-                                        <div className="h-6 w-16 bg-white/10 rounded animate-pulse"></div>
-                                    </div>
-                                    <div className="h-8 w-24 bg-white/10 rounded animate-pulse"></div>
+                            <div
+                                key={i}
+                                className="rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03]"
+                            >
+                                <div className="aspect-[4/3] bg-white/10 animate-pulse" />
+                                <div className="p-3 sm:p-4 space-y-2">
+                                    <div className="h-4 w-full bg-white/10 rounded animate-pulse" />
+                                    <div className="h-6 w-20 bg-white/10 rounded animate-pulse" />
                                 </div>
                             </div>
                         ))}
@@ -57,130 +53,119 @@ export default function ProductGrid() {
         );
     }
 
-    // No products state
     if (products.length === 0) {
         return (
-            <section id="products" className="py-20 md:py-28 bg-gradient-to-b from-black to-gray-900">
+            <section id="products" className="py-16 md:py-24 bg-black">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <p className="text-gray-500">No featured products available at the moment.</p>
+                    <p className="text-white/40">No featured products available at the moment.</p>
                 </div>
             </section>
         );
     }
 
     return (
-        <section id="products" className="relative py-20 md:py-28 bg-gradient-to-b from-black to-gray-900 overflow-hidden">
-            {/* Ambient glow orbs */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-20 -left-32 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-10 -right-32 w-96 h-96 bg-blue-500/8 rounded-full blur-3xl" />
+        <section
+            id="products"
+            className="relative py-16 md:py-24 bg-black overflow-hidden"
+        >
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-16 -left-28 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-8 -right-28 w-80 h-80 bg-blue-500/8 rounded-full blur-3xl" />
             </div>
+
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                {/* Section Header */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="flex flex-col md:flex-row md:items-end md:justify-between mb-12"
+                    transition={{ duration: 0.5 }}
+                    className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10"
                 >
                     <div>
-                        <h2 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-2">
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400 mb-2">
                             Fresh Drops
-                        </h2>
-                        <p className="text-3xl md:text-4xl font-bold text-white">
-                            Latest Arrivals
                         </p>
+                        <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
+                            Latest Arrivals
+                        </h2>
                     </div>
                     <Link
                         href="/products"
-                        className="text-cyan-400 hover:text-white transition-colors font-medium mt-4 md:mt-0"
+                        className="inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-2.5 rounded-full border border-white/15 text-sm font-medium text-white hover:border-cyan-400/50 hover:text-cyan-300 transition-all self-start sm:self-auto"
                     >
-                        View All Products →
+                        View All Products
+                        <ArrowRight size={16} />
                     </Link>
                 </motion.div>
 
-                {/* Products Grid */}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
                     {products.map((product, index) => (
                         <motion.div
                             key={product.id}
-                            initial={{ opacity: 0, y: 30 }}
+                            initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ delay: index * 0.1, duration: 0.5 }}
+                            transition={{ delay: index * 0.06, duration: 0.4 }}
                         >
-                            <Link href={`/product/${product.slug}`}>
-                                <div className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden cursor-pointer h-full hover:border-cyan-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10">
-                                    {/* Image Container */}
+                            <Link href={`/product/${product.slug}`} className="block h-full">
+                                <div className="group h-full rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] hover:border-cyan-500/35 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-400">
                                     <div className="relative aspect-[4/3] overflow-hidden bg-white/5">
-                                        {product.images && product.images.length > 0 ? (
+                                        {product.images?.[0] ? (
                                             <Image
                                                 src={product.images[0]}
                                                 alt={product.name}
                                                 fill
                                                 className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                                sizes="(max-width: 640px) 50vw, 25vw"
                                             />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-gray-500">
+                                            <div className="w-full h-full flex items-center justify-center text-white/30 text-sm">
                                                 No Image
                                             </div>
                                         )}
-                                        {/* Condition Badge */}
-                                        <div className="absolute top-3 left-3">
-                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                        <div className="absolute top-2.5 left-2.5">
+                                            <span className="inline-flex px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-black/60 text-emerald-300 border border-emerald-500/30 backdrop-blur-sm">
                                                 {product.condition}
                                             </span>
                                         </div>
-                                        {/* Discount Badge */}
                                         {product.originalPrice && (
-                                            <div className="absolute top-3 right-3">
-                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white">
-                                                    {Math.round((1 - product.price / product.originalPrice) * 100)}% OFF
+                                            <div className="absolute top-2.5 right-2.5">
+                                                <span className="inline-flex px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-600 text-white">
+                                                    {Math.round(
+                                                        (1 - product.price / product.originalPrice) *
+                                                            100
+                                                    )}
+                                                    % OFF
                                                 </span>
                                             </div>
                                         )}
-                                        {/* Dark gradient overlay at bottom */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent" />
                                     </div>
 
-                                    {/* Content */}
-                                    <div className="p-5">
-                                        {/* Title */}
-                                        <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1 group-hover:text-cyan-400 transition-colors">
+                                    <div className="p-3 sm:p-4">
+                                        <h3 className="text-sm sm:text-base font-semibold text-white mb-2 line-clamp-1 group-hover:text-cyan-300 transition-colors">
                                             {product.name}
                                         </h3>
 
-                                        {/* Specs */}
-                                        <div className="space-y-2 mb-4">
-                                            {product.specs?.processor && (
-                                                <div>
-                                                    <span className="inline-block px-2 py-1 rounded-md text-xs bg-white/10 text-gray-300">
-                                                        {product.specs.processor}
-                                                    </span>
-                                                </div>
+                                        <div className="hidden sm:flex flex-wrap gap-1.5 mb-3">
+                                            {product.specs?.ram && (
+                                                <span className="px-2 py-0.5 rounded-md text-[10px] bg-white/10 text-white/50">
+                                                    {product.specs.ram}
+                                                </span>
                                             )}
-                                            <div className="flex gap-2">
-                                                {product.specs?.ram && (
-                                                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-white/10 text-gray-300">
-                                                        {product.specs.ram}
-                                                    </span>
-                                                )}
-                                                {product.specs?.storage && (
-                                                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-white/10 text-gray-300">
-                                                        {product.specs.storage}
-                                                    </span>
-                                                )}
-                                            </div>
+                                            {product.specs?.storage && (
+                                                <span className="px-2 py-0.5 rounded-md text-[10px] bg-white/10 text-white/50">
+                                                    {product.specs.storage}
+                                                </span>
+                                            )}
                                         </div>
 
-                                        {/* Price */}
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-2xl font-bold text-cyan-400">
+                                        <div className="flex items-baseline gap-1.5 sm:gap-2">
+                                            <span className="text-base sm:text-xl font-bold text-cyan-400">
                                                 ₹{product.price.toLocaleString('en-IN')}
                                             </span>
                                             {product.originalPrice && (
-                                                <span className="text-sm text-gray-500 line-through">
+                                                <span className="text-[10px] sm:text-xs text-white/35 line-through">
                                                     ₹{product.originalPrice.toLocaleString('en-IN')}
                                                 </span>
                                             )}

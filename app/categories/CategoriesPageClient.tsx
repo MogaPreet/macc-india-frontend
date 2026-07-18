@@ -7,33 +7,10 @@ import Link from 'next/link';
 import { ArrowUpRight, Sparkles, ChevronDown, Layers } from 'lucide-react';
 import { getCategories } from '@/lib/firebase-services';
 import { Category } from '@/lib/types';
-
-// Fallback GIF-like animated placeholder images (Unsplash with movement themes)
-const fallbackBySlug: Record<string, string> = {
-    'gaming-enthusiast': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800',
-    'the-developer': 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800',
-    'the-student': 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=800',
-    'business-professional': 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800',
-    'creative-professional': 'https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80&w=800',
-    'everyday-home-user': 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=800',
-};
-
-const getFallback = (slug: string) =>
-    fallbackBySlug[slug] ||
-    'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80&w=800';
-
-// Colour accents per category (fallback)
-const accentBySlug: Record<string, { from: string; to: string; glow: string }> = {
-    'gaming-enthusiast': { from: 'from-purple-500', to: 'to-pink-500', glow: 'shadow-purple-500/40' },
-    'the-developer': { from: 'from-cyan-500', to: 'to-blue-500', glow: 'shadow-cyan-500/40' },
-    'the-student': { from: 'from-emerald-500', to: 'to-teal-500', glow: 'shadow-emerald-500/40' },
-    'business-professional': { from: 'from-amber-500', to: 'to-orange-500', glow: 'shadow-amber-500/40' },
-    'creative-professional': { from: 'from-rose-500', to: 'to-pink-400', glow: 'shadow-rose-500/40' },
-    'everyday-home-user': { from: 'from-blue-400', to: 'to-indigo-500', glow: 'shadow-blue-500/40' },
-};
-
-const getAccent = (slug: string) =>
-    accentBySlug[slug] || { from: 'from-cyan-500', to: 'to-blue-500', glow: 'shadow-cyan-500/40' };
+import {
+    getCategoryAccent,
+    getCategoryHeroMedia,
+} from '@/lib/category-theme';
 
 export default function CategoriesPageClient() {
     const [categories, setCategories] = useState<Category[]>([]);
@@ -81,7 +58,7 @@ export default function CategoriesPageClient() {
                 {heroCategory && (
                     <div className="absolute inset-0">
                         <Image
-                            src={heroCategory.gifUrl || getFallback(heroCategory.slug)}
+                            src={getCategoryHeroMedia(heroCategory)}
                             alt={heroCategory.name}
                             fill
                             className="object-cover opacity-20 scale-110"
@@ -174,14 +151,14 @@ export default function CategoriesPageClient() {
                                     {/* BG GIF */}
                                     <div className="absolute inset-0">
                                         <Image
-                                            src={heroCategory.gifUrl || getFallback(heroCategory.slug)}
+                                            src={getCategoryHeroMedia(heroCategory)}
                                             alt={heroCategory.name}
                                             fill
                                             className="object-cover transition-all duration-700 group-hover:scale-105 group-hover:opacity-80 opacity-60"
                                             unoptimized
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-                                        <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-20 transition-opacity duration-500 ${getAccent(heroCategory.slug).from} ${getAccent(heroCategory.slug).to}`} />
+                                        <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-20 transition-opacity duration-500 ${getCategoryAccent(heroCategory.slug, heroCategory.color).from} ${getCategoryAccent(heroCategory.slug, heroCategory.color).to}`} />
                                     </div>
 
                                     {/* Spotlight badge */}
@@ -200,12 +177,12 @@ export default function CategoriesPageClient() {
                                                 <h2 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tight leading-none mb-3">
                                                     {heroCategory.name}
                                                 </h2>
-                                                <div className={`h-1 w-16 group-hover:w-40 bg-gradient-to-r ${getAccent(heroCategory.slug).from} ${getAccent(heroCategory.slug).to} transition-all duration-500 rounded-full`} />
+                                                <div className={`h-1 w-16 group-hover:w-40 bg-gradient-to-r ${getCategoryAccent(heroCategory.slug, heroCategory.color).from} ${getCategoryAccent(heroCategory.slug, heroCategory.color).to} transition-all duration-500 rounded-full`} />
                                             </div>
                                             <motion.div
                                                 animate={{ scale: hoveredId === heroCategory.id ? 1 : 0.8, opacity: hoveredId === heroCategory.id ? 1 : 0 }}
                                                 transition={{ duration: 0.3 }}
-                                                className={`bg-white text-black p-4 rounded-full shadow-2xl ${getAccent(heroCategory.slug).glow}`}
+                                                className={`bg-white text-black p-4 rounded-full shadow-2xl ${getCategoryAccent(heroCategory.slug, heroCategory.color).glow}`}
                                             >
                                                 <ArrowUpRight size={28} />
                                             </motion.div>
@@ -218,8 +195,8 @@ export default function CategoriesPageClient() {
                         {/* ── Category Grid ── */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {gridCategories.map((category, idx) => {
-                                const accent = getAccent(category.slug);
-                                const mediaUrl = category.gifUrl || getFallback(category.slug);
+                                const accent = getCategoryAccent(category.slug, category.color);
+                                const mediaUrl = getCategoryHeroMedia(category);
 
                                 return (
                                     <motion.div

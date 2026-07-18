@@ -6,7 +6,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getProducts } from '@/lib/firebase-services';
-import { Product } from '@/lib/types';
 
 interface DisplayDeal {
     id: string;
@@ -34,12 +33,13 @@ export default function OffersSection() {
             try {
                 const products = await getProducts();
 
-                // Calculate discounts and sort
                 const productsWithDiscounts = products
-                    .filter(p => p.originalPrice && p.originalPrice > p.price)
-                    .map(p => {
+                    .filter((p) => p.originalPrice && p.originalPrice > p.price)
+                    .map((p) => {
                         const discountValue = p.originalPrice! - p.price;
-                        const discountPercentage = Math.round((discountValue / p.originalPrice!) * 100);
+                        const discountPercentage = Math.round(
+                            (discountValue / p.originalPrice!) * 100
+                        );
                         return { ...p, discountPercentage };
                     })
                     .sort((a, b) => b.discountPercentage - a.discountPercentage)
@@ -51,9 +51,11 @@ export default function OffersSection() {
                     discount: `${p.discountPercentage}% OFF`,
                     originalPrice: `₹${p.originalPrice?.toLocaleString()}`,
                     salePrice: `₹${p.price.toLocaleString()}`,
-                    image: p.images[0] || 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=600&q=80',
+                    image:
+                        p.images[0] ||
+                        'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=600&q=80',
                     gradient: gradients[index % gradients.length],
-                    slug: p.slug
+                    slug: p.slug,
                 }));
 
                 setDeals(formattedDeals);
@@ -69,9 +71,9 @@ export default function OffersSection() {
 
     if (loading) {
         return (
-            <div className="py-24 flex flex-col items-center justify-center bg-gray-900">
-                <Loader2 className="w-12 h-12 text-accent-cyan animate-spin mb-4" />
-                <p className="text-gray-400">Finding the best deals for you...</p>
+            <div className="py-20 flex flex-col items-center justify-center bg-black">
+                <Loader2 className="w-10 h-10 text-cyan-400 animate-spin mb-4" />
+                <p className="text-white/40 text-sm">Finding the best deals for you...</p>
             </div>
         );
     }
@@ -79,107 +81,86 @@ export default function OffersSection() {
     if (deals.length === 0) return null;
 
     return (
-        <section className="py-20 md:py-20 relative overflow-hidden">
-            {/* Decorative floating elements — energetic transition from ProductGrid above */}
-            {/* <div className="absolute top-0 left-0 right-0 h-32 z-[2] pointer-events-none overflow-hidden">
-                {['⚡', '🔥', '💎', '✨', '🏷️', '💰', '⚡', '✨', '🔥'].map((emoji, i) => (
-                    <motion.span
-                        key={i}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: [0.15, 0.35, 0.15], y: [-5, -15, -5] }}
-                        viewport={{ once: false }}
-                        transition={{ duration: 3 + (i * 0.5), repeat: Infinity, delay: i * 0.3 }}
-                        className="absolute text-2xl md:text-3xl"
-                        style={{
-                            left: `${8 + i * 10}%`,
-                            top: `${15 + (i % 3) * 25}%`,
-                        }}
-                    >
-                        {emoji}
-                    </motion.span>
-                ))}
-            </div> */}
-
-            {/* Animated Background */}
-            <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900 to-black">
-                <div className="absolute inset-0 neon-grid opacity-10"></div>
-                {/* Floating Orbs */}
-                <div className="absolute top-40 left-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute bottom-20 right-20 w-96 h-96 bg-cyan-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-                <div className="absolute top-10 right-1/3 w-64 h-64 bg-amber-500/8 rounded-full blur-3xl pointer-events-none"></div>
+        <section className="py-16 md:py-24 relative overflow-hidden bg-black">
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute inset-0 neon-grid opacity-[0.06]" />
+                <div className="absolute top-24 left-8 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-16 right-8 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl" />
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                {/* Section Header */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center mb-12"
+                    transition={{ duration: 0.5 }}
+                    className="text-center mb-10 md:mb-12"
                 >
-                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 px-4 py-2 rounded-full text-sm font-medium mb-4 border border-amber-500/30">
-                        <Sparkles size={16} className="animate-pulse" />
+                    <div className="inline-flex items-center gap-2 bg-amber-500/15 text-amber-300 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider mb-4 border border-amber-500/25">
+                        <Sparkles size={14} />
                         Best Deals
                     </div>
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-                        Unbeatable <span className="gradient-text">Prices</span>
+                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight mb-3">
+                        Unbeatable{' '}
+                        <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                            Prices
+                        </span>
                     </h2>
-                    <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                    <p className="text-white/45 text-base md:text-lg max-w-2xl mx-auto">
                         Premium refurbished laptops at prices you won&apos;t find anywhere else.
                     </p>
                 </motion.div>
 
-                {/* Deals Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
                     {deals.map((deal, index) => (
                         <motion.div
                             key={deal.id}
-                            initial={{ opacity: 0, y: 30 }}
+                            initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ delay: index * 0.15, duration: 0.5 }}
-                            className="group"
+                            transition={{ delay: index * 0.1, duration: 0.4 }}
                         >
-                            <Link href={`/product/${deal.slug}`}>
-                                <div className="relative bg-gray-800/60 backdrop-blur-xl rounded-2xl overflow-hidden border border-gray-700/50 hover:border-gray-500/50 transition-all duration-500 h-full">
-                                    {/* Discount Badge */}
-                                    <div className={`absolute top-4 left-4 z-20 px-4 py-2 rounded-full bg-gradient-to-r ${deal.gradient} text-white font-bold text-sm shadow-lg`}>
-                                        {deal.discount}
-                                    </div>
-
-                                    {/* Image */}
-                                    <div className="relative aspect-[4/3] overflow-hidden">
+                            <Link href={`/product/${deal.slug}`} className="block h-full group">
+                                <div className="relative h-full rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] hover:border-white/25 transition-all duration-400">
+                                    <div className="relative aspect-[16/10] overflow-hidden">
                                         <Image
                                             src={deal.image}
                                             alt={deal.title}
                                             fill
-                                            className="object-cover transition-transform duration-700"
+                                            className="object-cover group-hover:scale-105 transition-transform duration-700"
+                                            sizes="(max-width: 768px) 100vw, 33vw"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div>
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                                        <div
+                                            className={`absolute top-3 left-3 z-10 px-3 py-1.5 rounded-full bg-gradient-to-r ${deal.gradient} text-white font-bold text-xs shadow-lg`}
+                                        >
+                                            {deal.discount}
+                                        </div>
                                     </div>
 
-                                    {/* Content */}
-                                    <div className="p-6 -mt-16 relative z-10">
-                                        <h3 className="text-xl font-bold text-white mb-3 line-clamp-1">
+                                    <div className="p-4 sm:p-5">
+                                        <h3 className="text-base sm:text-lg font-bold text-white mb-3 line-clamp-1">
                                             {deal.title}
                                         </h3>
 
-                                        {/* Pricing */}
-                                        <div className="flex items-baseline gap-3 mb-4">
-                                            <span className={`text-2xl font-bold bg-gradient-to-r ${deal.gradient} bg-clip-text text-transparent`}>
+                                        <div className="flex items-baseline gap-2 mb-4">
+                                            <span
+                                                className={`text-xl sm:text-2xl font-bold bg-gradient-to-r ${deal.gradient} bg-clip-text text-transparent`}
+                                            >
                                                 {deal.salePrice}
                                             </span>
-                                            <span className="text-gray-500 line-through text-sm">
+                                            <span className="text-white/35 line-through text-sm">
                                                 {deal.originalPrice}
                                             </span>
                                         </div>
 
-                                        {/* CTA */}
-                                        <div className="flex items-center gap-2 text-gray-400 group-hover:text-white transition-colors text-sm font-medium">
+                                        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-white/50 group-hover:text-white transition-colors min-h-[44px]">
                                             Shop Now
-                                            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                                        </div>
+                                            <ArrowRight
+                                                size={14}
+                                                className="group-hover:translate-x-0.5 transition-transform"
+                                            />
+                                        </span>
                                     </div>
                                 </div>
                             </Link>
@@ -187,20 +168,18 @@ export default function OffersSection() {
                     ))}
                 </div>
 
-                {/* View All CTA */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 12 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: 0.5, duration: 0.6 }}
-                    className="text-center mt-12"
+                    className="text-center mt-10"
                 >
                     <Link
                         href="/products"
-                        className="inline-flex items-center gap-2 text-white border border-gray-600 hover:border-accent-cyan hover:text-accent-cyan px-8 py-3 rounded-full font-medium transition-colors"
+                        className="inline-flex items-center justify-center gap-2 min-h-[48px] text-white border border-white/20 hover:border-cyan-400/50 hover:text-cyan-300 px-7 py-3 rounded-full font-medium transition-all"
                     >
                         View All Deals
-                        <ArrowRight size={18} />
+                        <ArrowRight size={16} />
                     </Link>
                 </motion.div>
             </div>

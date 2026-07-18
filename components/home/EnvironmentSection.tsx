@@ -1,8 +1,17 @@
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
-import { Leaf, Recycle, Droplets, Factory, TreeDeciduous, Zap, Heart, Globe } from 'lucide-react';
+import { motion } from 'framer-motion';
+import {
+    Leaf,
+    Recycle,
+    Droplets,
+    Factory,
+    TreeDeciduous,
+    Zap,
+    Heart,
+    Globe,
+} from 'lucide-react';
+import Link from 'next/link';
 
 const impactStats = [
     {
@@ -35,246 +44,151 @@ const benefits = [
     {
         icon: Recycle,
         title: 'Circular Economy',
-        description: 'Every refurbished laptop extends the product lifecycle, reducing the demand for raw materials and minimizing environmental impact.',
+        description:
+            'Every refurbished laptop extends the product lifecycle, reducing demand for raw materials.',
     },
     {
         icon: Globe,
         title: 'Reduced E-Waste',
-        description: 'Electronic waste is one of the fastest-growing waste streams. By choosing refurbished, you help keep devices out of landfills.',
+        description:
+            'Electronic waste is growing fast. Choosing refurbished keeps devices out of landfills.',
     },
     {
         icon: Heart,
         title: 'Conscious Consumption',
-        description: 'Make a positive impact without compromising on quality. Premium performance meets environmental responsibility.',
+        description:
+            'Premium performance with environmental responsibility — no compromise on quality.',
     },
 ];
 
 export default function EnvironmentSection() {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start end", "end start"]
-    });
-
-    const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
-    const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
-
     return (
-        <section ref={containerRef} className="relative py-20 md:py-28 overflow-hidden bg-gradient-to-b from-gray-900 via-emerald-950 to-gray-900">
-            {/* Animated Background */}
-            <div className="absolute inset-0">
-                {/* Gradient Orbs */}
-                <motion.div
-                    style={{ y }}
-                    className="absolute top-20 left-10 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl"
-                />
-                <motion.div
-                    style={{ y: useTransform(scrollYProgress, [0, 1], [-50, 50]) }}
-                    className="absolute bottom-20 right-10 w-80 h-80 bg-teal-500/15 rounded-full blur-3xl"
-                />
-                <motion.div
-                    style={{ y: useTransform(scrollYProgress, [0, 1], [50, -100]) }}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-3xl"
-                />
-
-                {/* Floating Leaves Animation */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    {[...Array(12)].map((_, i) => (
-                        <motion.div
-                            key={i}
-                            className="absolute text-emerald-500/20"
-                            initial={{
-                                x: Math.random() * 100 + '%',
-                                y: -20,
-                                rotate: 0,
-                                opacity: 0.3
-                            }}
-                            animate={{
-                                y: '120vh',
-                                rotate: 360,
-                                opacity: [0.3, 0.6, 0.3]
-                            }}
-                            transition={{
-                                duration: 15 + Math.random() * 10,
-                                repeat: Infinity,
-                                delay: i * 2,
-                                ease: 'linear'
-                            }}
-                        >
-                            <Leaf size={20 + Math.random() * 20} />
-                        </motion.div>
-                    ))}
-                </div>
+        <section className="relative py-16 md:py-24 overflow-hidden bg-gradient-to-b from-black via-emerald-950/40 to-black">
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-24 left-0 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl" />
+                <div className="absolute bottom-20 right-0 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl" />
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                {/* Header */}
                 <motion.div
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center mb-16"
+                    transition={{ duration: 0.5 }}
+                    className="text-center mb-12 md:mb-14"
                 >
-                    <motion.div
-                        initial={{ scale: 0 }}
-                        whileInView={{ scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
-                        className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 mb-6"
-                    >
-                        <Leaf className="text-white" size={40} />
-                    </motion.div>
-
-                    <h2 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-3">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 mb-5">
+                        <Leaf className="text-white" size={28} />
+                    </div>
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 mb-3">
                         Sustainable Technology
-                    </h2>
-                    <p className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+                    </p>
+                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight mb-4">
                         Every Purchase Makes a{' '}
                         <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
                             Difference
                         </span>
-                    </p>
-                    <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                        Choosing refurbished isn&apos;t just smart for your wallet — it&apos;s a powerful step towards a greener planet. Here&apos;s how your choice creates real environmental impact.
+                    </h2>
+                    <p className="text-white/45 text-base md:text-lg max-w-2xl mx-auto">
+                        Choosing refurbished is smart for your wallet and a step toward a greener
+                        planet.
                     </p>
                 </motion.div>
 
-                {/* Impact Stats */}
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.3, duration: 0.6 }}
-                    className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20"
-                >
+                {/* Stats — single column on mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-12 md:mb-16">
                     {impactStats.map((stat, index) => {
                         const Icon = stat.icon;
                         return (
                             <motion.div
                                 key={stat.label}
-                                initial={{ opacity: 0, y: 30 }}
+                                initial={{ opacity: 0, y: 16 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
-                                transition={{ delay: 0.4 + index * 0.1, duration: 0.5 }}
-                                whileHover={{ scale: 1.05, y: -5 }}
-                                className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center group hover:border-emerald-500/30 transition-all duration-500"
+                                transition={{ delay: index * 0.06, duration: 0.4 }}
+                                className="rounded-2xl border border-emerald-500/20 bg-white/[0.03] p-5 text-center sm:text-left"
                             >
-                                {/* Glow Effect */}
-                                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500/0 to-teal-500/0 group-hover:from-emerald-500/10 group-hover:to-teal-500/5 transition-all duration-500" />
-
-                                <div className="relative z-10">
-                                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                                        <Icon className="text-white" size={28} />
-                                    </div>
-                                    <div className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-2">
-                                        {stat.value}
-                                    </div>
-                                    <div className="text-white font-semibold mb-1">{stat.label}</div>
-                                    <div className="text-gray-500 text-sm">{stat.description}</div>
+                                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto sm:mx-0 mb-3">
+                                    <Icon className="text-white" size={20} />
+                                </div>
+                                <div className="text-3xl font-black bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-1">
+                                    {stat.value}
+                                </div>
+                                <div className="text-white font-semibold text-sm mb-1">
+                                    {stat.label}
+                                </div>
+                                <div className="text-white/40 text-xs leading-relaxed">
+                                    {stat.description}
                                 </div>
                             </motion.div>
                         );
                     })}
-                </motion.div>
-
-                {/* Visual Impact Section */}
-                <div className="relative mb-20">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8 }}
-                        className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-emerald-900/50 to-teal-900/50 border border-emerald-500/20 p-8 md:p-12"
-                    >
-                        {/* Animated Earth Background */}
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-96 h-96 opacity-20">
-                            <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
-                                className="w-full h-full rounded-full border-2 border-emerald-500/30"
-                            />
-                            <motion.div
-                                animate={{ rotate: -360 }}
-                                transition={{ duration: 45, repeat: Infinity, ease: 'linear' }}
-                                className="absolute inset-8 rounded-full border border-teal-500/30"
-                            />
-                            <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-                                className="absolute inset-16 rounded-full border border-cyan-500/30"
-                            />
-                            <div className="absolute inset-24 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20" />
-                        </div>
-
-                        <div className="relative z-10 max-w-2xl">
-                            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
-                                The Refurbished Revolution
-                            </h3>
-                            <p className="text-gray-300 text-lg leading-relaxed mb-6">
-                                Manufacturing a single new laptop generates approximately <span className="text-emerald-400 font-semibold">300 kg of CO₂</span> and uses over <span className="text-teal-400 font-semibold">190,000 liters of water</span>. By choosing refurbished, you&apos;re directly reducing this environmental footprint while getting a premium device at a fraction of the cost.
-                            </p>
-                            <div className="flex flex-wrap gap-4">
-                                <div className="flex items-center gap-2 bg-emerald-500/20 px-4 py-2 rounded-full text-emerald-300">
-                                    <Leaf size={16} />
-                                    <span className="text-sm font-medium">Carbon Neutral Goal</span>
-                                </div>
-                                <div className="flex items-center gap-2 bg-teal-500/20 px-4 py-2 rounded-full text-teal-300">
-                                    <Recycle size={16} />
-                                    <span className="text-sm font-medium">Zero Waste Initiative</span>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
                 </div>
 
-                {/* Benefits Grid */}
+                {/* Story + benefits in one hierarchy */}
                 <motion.div
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: 0.4, duration: 0.6 }}
-                    className="grid md:grid-cols-3 gap-8"
+                    className="rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/50 to-teal-950/30 p-6 sm:p-8 md:p-10 mb-10 md:mb-12"
                 >
-                    {benefits.map((benefit, index) => {
-                        const Icon = benefit.icon;
-                        return (
-                            <motion.div
-                                key={benefit.title}
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.5 + index * 0.1, duration: 0.5 }}
-                                className="text-center"
-                            >
-                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto mb-4">
-                                    <Icon className="text-emerald-400" size={32} />
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white mb-3 tracking-tight">
+                        The Refurbished Revolution
+                    </h3>
+                    <p className="text-white/55 text-sm sm:text-base leading-relaxed mb-5 max-w-3xl">
+                        Manufacturing a single new laptop generates approximately{' '}
+                        <span className="text-emerald-400 font-semibold">300 kg of CO₂</span> and
+                        uses over{' '}
+                        <span className="text-teal-400 font-semibold">190,000 liters of water</span>
+                        . Refurbished cuts that footprint while delivering premium performance.
+                    </p>
+                    <div className="flex flex-wrap gap-2 mb-8">
+                        <span className="inline-flex items-center gap-1.5 bg-emerald-500/15 px-3 py-1.5 rounded-full text-emerald-300 text-xs font-medium">
+                            <Leaf size={12} />
+                            Carbon Neutral Goal
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 bg-teal-500/15 px-3 py-1.5 rounded-full text-teal-300 text-xs font-medium">
+                            <Recycle size={12} />
+                            Zero Waste Initiative
+                        </span>
+                    </div>
+
+                    <div className="grid sm:grid-cols-3 gap-6 sm:gap-5 pt-6 border-t border-emerald-500/15">
+                        {benefits.map((benefit) => {
+                            const Icon = benefit.icon;
+                            return (
+                                <div key={benefit.title} className="text-left">
+                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center mb-3">
+                                        <Icon className="text-emerald-400" size={18} />
+                                    </div>
+                                    <h4 className="text-base font-bold text-white mb-1.5">
+                                        {benefit.title}
+                                    </h4>
+                                    <p className="text-white/45 text-sm leading-relaxed">
+                                        {benefit.description}
+                                    </p>
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-3">{benefit.title}</h3>
-                                <p className="text-gray-400 leading-relaxed">{benefit.description}</p>
-                            </motion.div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </motion.div>
 
-                {/* CTA */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 12 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: 0.7, duration: 0.5 }}
-                    className="text-center mt-16"
+                    className="text-center"
                 >
-                    <p className="text-gray-400 mb-6">Join thousands of conscious consumers making the switch</p>
-                    <motion.a
+                    <p className="text-white/40 text-sm mb-5">
+                        Join thousands of conscious consumers making the switch
+                    </p>
+                    <Link
                         href="/products"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white px-8 py-4 rounded-full font-semibold transition-all shadow-lg shadow-emerald-500/25"
+                        className="inline-flex items-center justify-center gap-2 min-h-[48px] bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white px-8 py-3.5 rounded-full font-semibold transition-all shadow-lg shadow-emerald-500/25"
                     >
-                        <Leaf size={20} />
+                        <Leaf size={18} />
                         Shop Sustainable
-                    </motion.a>
+                    </Link>
                 </motion.div>
             </div>
         </section>
